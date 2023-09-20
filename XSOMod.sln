@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeyboardOSC", "KeyboardOSC\KeyboardOSC.csproj", "{193590D2-D414-4E05-AA17-56DFA0388EF3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9E243A79-0F42-43FB-BFB6-3CCF1E0CD6DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E243A79-0F42-43FB-BFB6-3CCF1E0CD6DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E243A79-0F42-43FB-BFB6-3CCF1E0CD6DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E243A79-0F42-43FB-BFB6-3CCF1E0CD6DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{499F8606-5E89-40C2-8D1B-B106D5527AA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{499F8606-5E89-40C2-8D1B-B106D5527AA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{499F8606-5E89-40C2-8D1B-B106D5527AA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{499F8606-5E89-40C2-8D1B-B106D5527AA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{193590D2-D414-4E05-AA17-56DFA0388EF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{193590D2-D414-4E05-AA17-56DFA0388EF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{193590D2-D414-4E05-AA17-56DFA0388EF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{193590D2-D414-4E05-AA17-56DFA0388EF3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

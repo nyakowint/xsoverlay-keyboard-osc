@@ -1,0 +1,54 @@
+name: Build & Release
+
+concurrency:
+  group: "build"
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - '**.js'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Checkout XSO assemblies
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.xsoRepo }}
+          token: ${{ secrets.repoToken }}
+          path: refs
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3.2.0
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Add Bepis NuGet & Restore dependencies
+        run: |
+          dotnet nuget add source https://nuget.bepinex.dev/v3/index.json
+          dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release --no-restore
+
+      - name: Tag version
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        run: |
+          short_sha=${${{ github.sha }}:0:6}
+          gh release create ${{ steps.tag_version.outputs.new_tag }}-$short_sha ./builds/Release/net472/KeyboardOSC.dll --title "KeyboardOSC Build $short_sha" --prerelease --notes "${{ steps.tag_version.outputs.changelog }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
