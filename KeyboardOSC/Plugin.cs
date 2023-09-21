@@ -40,8 +40,8 @@ namespace KeyboardOSC
             
             ServerBridge.Instance.CommandMap["Keyboard"] = delegate
             {
-                Overlay_Manager.Instance.EnableKeyboard();
                 InitializeKeyboard();
+                Overlay_Manager.Instance.EnableKeyboard();
             };
         }
 

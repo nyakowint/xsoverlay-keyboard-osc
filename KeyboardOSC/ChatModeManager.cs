@@ -17,7 +17,7 @@ public static class ChatModeManager
     private static bool _isSilentMsg;
     private static string _currentText = "";
     private static string _lastMsg = "";
-    private static DateTime _lastPingTime;
+    private static DateTime _lastTypingTime;
     private static readonly ManualLogSource Logger = Plugin.PluginLogger;
     private static TextMeshProUGUI _oscBarText;
     private static List<KeyboardKey> _currentlyDownStickyKeys = new();
@@ -28,11 +28,13 @@ public static class ChatModeManager
             ? (uint) eventData.KeyCode[0]
             : eventData.Sender.ScanCode[0];
         var shiftedField = AccessTools.Field(typeof(KeyboardKey), "IsShifted");
+        var altedField = AccessTools.Field(typeof(KeyboardKey), "IsAlted");
         var isShifted = (bool) shiftedField.GetValue(eventData.Sender);
+        var isAlted = (bool) altedField.GetValue(eventData.Sender); // altGr
 
         foreach (var key in eventData.KeyCode)
         {
-            var character = Tools.ConvertVirtualKeyToUnicode(key, scanCode, isShifted);
+            var character = Tools.ConvertVirtualKeyToUnicode(key, scanCode, isShifted, isAlted);
             ProcessKey(key, eventData, character);
         }
     }
@@ -93,7 +95,6 @@ public static class ChatModeManager
         }
 
 
-        // send to vrchat
         if (key is VirtualKeyCode.RETURN)
         {
             if (_currentText.Length <= 0) return;
@@ -110,29 +111,22 @@ public static class ChatModeManager
         }
 
 
-        if (string.IsNullOrEmpty(character)) return;
+        SendTyping(true);
         _currentText += character;
         UpdateChatText(_currentText);
-        SendTyping(true);
         Logger.LogInfo("updating chat text with " + _currentText);
-    }
-
-    public static void SendTyping(bool typing)
-    {
-        if (DateTime.Now - _lastPingTime < TimeSpan.FromSeconds(2) && typing) return;
-        _lastPingTime = DateTime.Now;
-        if (typing)
-        {
-            Tools.SendOsc("/chatbox/typing", "true");
-            return;
-        }
-
-        Tools.SendOsc("/chatbox/typing", "false");
     }
 
     private static void SendMessage(string address, string msg, bool now, bool sound)
     {
         Tools.SendOsc(address, msg, now, sound);
+    }
+
+    private static void SendTyping(bool typing)
+    {
+        if (typing && (DateTime.Now - _lastTypingTime).TotalSeconds <= 2) return;
+        _lastTypingTime = DateTime.Now;
+        Tools.SendOsc("/chatbox/typing", typing);
     }
 
     public static void Setup(TextMeshProUGUI obText)

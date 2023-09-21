@@ -35,16 +35,27 @@ public static class Tools
             content = content,
             messageType = 1,
             timeout = 5f,
-            sourceApp = "Keyboard Plugin",
+            height = calculateHeight(content),
+            sourceApp = "KeyboardOSC Plugin",
             volume = 0.5f
         };
         NotificationHandler.Instance.PrepareToast(notif);
     }
     
 
-    public static string ConvertVirtualKeyToUnicode(VirtualKeyCode keyCode, uint scanCode, bool shift)
+    public static string ConvertVirtualKeyToUnicode(VirtualKeyCode keyCode, uint scanCode, bool shift, bool altGr)
     {
-        return GetCharsFromKeys(keyCode, scanCode, shift, false);
+        return GetCharsFromKeys(keyCode, scanCode, shift, altGr);
+    }
+    
+    private static int calculateHeight(string content) {
+        return content.Length switch
+        {
+            <= 100 => 100,
+            <= 200 => 150,
+            <= 300 => 200,
+            _ => 250
+        };
     }
 
     public static void DestroyComponent<T>(this GameObject go) where T : Component
