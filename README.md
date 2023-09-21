@@ -1,7 +1,13 @@
 # XSOverlay Keyboard OSC
-This plugin (yes, a mod for a vr overlay lol) aims to make typing to people in VRChat easier. Inspired by the OSC button found inside OVR Toolkit.
+A personal plugin to make chatbox typing in VRChat easier for me. Inspired by the OSC button found inside OVR Toolkit.
 
-hi thank you that is missing an i (only a few will get this i think xD)
+### Why a mod for a vr overlay?
+* personally I like XSOverlay better than OVRTK
+* cause i can kekw
+
+I'm mostly sharing it so others can use it if they want to
+
+hi xiexe [lol](https://discord.com/channels/627951491381985329/627951491381985333/681984395212881969)
 
 ## Installation
 
@@ -39,7 +45,7 @@ Use the following shortcut keys:
   
 Steam might not instantly detect XSOverlay as closed. Not a big deal but this is out of my control just so you know
 
-If you find any other issues create an issue so i can remember to try and fix it when i have time
+If you find any other issues create an issue so i can remember to try and fix it when i feel like it
 
 ## Build from source
 Check the .csproj or actions workflow
