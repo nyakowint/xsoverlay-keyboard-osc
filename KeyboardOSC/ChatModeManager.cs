@@ -58,7 +58,7 @@ public static class ChatModeManager
                     return;
                 }
 
-                _currentText = _currentText.Remove(key is VirtualKeyCode.DELETE ? 0 : _currentText.Length - 1);
+                _currentText = _currentText.Remove(key is VirtualKeyCode.DELETE ? 0 : _currentText.Length - 1, 1);
                 UpdateChatText(_currentText);
                 Logger.LogInfo("deleting chat text: " + _currentText);
                 return;
