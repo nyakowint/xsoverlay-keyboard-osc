@@ -48,7 +48,7 @@ jobs:
 
       - name: Create Release
         run: |
-          $short_sha="${{ github.sha }}".Substring(0,6)
+          $short_sha="${{ github.sha }}".Substring(0,7)
           gh release create ${{ steps.tag_version.outputs.new_tag }}-$short_sha ./builds/Release/net472/KeyboardOSC.dll --title "KeyboardOSC Build $short_sha" --prerelease --notes "${{ steps.tag_version.outputs.changelog }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
