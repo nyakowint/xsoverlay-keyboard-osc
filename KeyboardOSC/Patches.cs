@@ -48,9 +48,6 @@ public static class Patches
 
     public static bool KeyboardPatch(KeyboardKey.VirtualKeyEventData keyEventData)
     {
-        Logger.LogWarning($"patch: {keyEventData.Sender.Label}");
-        Logger.LogWarning($"{keyEventData.Sender.SecondaryLabel}");
-        Logger.LogWarning($"{keyEventData.IsKeySticky}");
         if (Plugin.IsChatModeActive) ChatModeManager.HandleKey(keyEventData);
         return true;
     }

@@ -84,14 +84,14 @@ public static class ChatModeManager
                 return;
             // copy + paste
             case VirtualKeyCode.VK_C:
-                if (!isCtrlHeld) return;
+                if (!isCtrlHeld) break;
                 GUIUtility.systemCopyBuffer = _currentText;
-                return;
+                break;
             case VirtualKeyCode.VK_V:
-                if (!isCtrlHeld) return;
+                if (!isCtrlHeld) break;
                 _currentText += GUIUtility.systemCopyBuffer;
                 UpdateChatText(_currentText);
-                return;
+                break;
         }
 
 
