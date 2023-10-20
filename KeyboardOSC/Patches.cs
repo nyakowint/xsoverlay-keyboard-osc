@@ -14,7 +14,7 @@ public static class Patches
     private static readonly ManualLogSource Logger = Plugin.PluginLogger;
     public static Harmony Harmony;
 
-    public static void DoPatches()
+    public static void PatchAll()
     {
         Harmony = new Harmony("nwnt.keyboardosc");
         // patch key presses

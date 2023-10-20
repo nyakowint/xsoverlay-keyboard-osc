@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using UnityEngine;
 using WindowsInput.Native;
 using XSOverlay;
@@ -35,20 +37,21 @@ public static class Tools
             content = content,
             messageType = 1,
             timeout = 5f,
-            height = calculateHeight(content),
+            height = CalculateHeight(content),
             sourceApp = "KeyboardOSC Plugin",
             volume = 0.5f
         };
         NotificationHandler.Instance.PrepareToast(notif);
     }
-    
+
 
     public static string ConvertVirtualKeyToUnicode(VirtualKeyCode keyCode, uint scanCode, bool shift, bool altGr)
     {
         return GetCharsFromKeys(keyCode, scanCode, shift, altGr);
     }
-    
-    private static int calculateHeight(string content) {
+
+    private static int CalculateHeight(string content)
+    {
         return content.Length switch
         {
             <= 100 => 100,
@@ -121,8 +124,8 @@ public static class Tools
     [DllImport("user32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
     private static extern int ToUnicodeEx(uint wVirtKey, uint wScanCode, byte[] lpKeyState, StringBuilder pwszBuff,
         int cchBuff, uint wFlags, IntPtr dwhkl);
-    
-    
+
+
     // REEEEEEE
     private static string GetCharsFromKeys(VirtualKeyCode key, uint scanCode, bool shift, bool altGr)
     {
@@ -132,24 +135,28 @@ public static class Tools
         {
             array[16] = byte.MaxValue;
         }
+
         if (altGr)
         {
             array[17] = byte.MaxValue;
             array[18] = byte.MaxValue;
         }
-        int num = ToUnicodeEx((uint)key, scanCode, array, stringBuilder, stringBuilder.Capacity, 0u, _currentHkl);
+
+        int num = ToUnicodeEx((uint) key, scanCode, array, stringBuilder, stringBuilder.Capacity, 0u, _currentHkl);
         if (num == k_SUCCESS)
         {
             return stringBuilder.ToString();
         }
+
         if (num == k_NOTRANSLATION)
         {
             return "";
         }
+
         _ = k_DEADCHAR;
         return stringBuilder[stringBuilder.Length - 1].ToString();
     }
-    
+
     public static int k_DEADCHAR;
     public static int k_NOTRANSLATION;
     public static int k_SUCCESS;

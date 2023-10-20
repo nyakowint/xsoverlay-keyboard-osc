@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using BepInEx.Configuration;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace KeyboardOSC;
@@ -18,10 +19,11 @@ public class ToggleChatButton : MonoBehaviour
 
     private static void ToggleChatMode()
     {
-        if (Plugin.IsFirstOpen)
+        PluginSettings.ConfigFile.TryGetEntry(PluginSettings.sectionId, "HasSeenHint", out ConfigEntry<bool> hasSeenHint);
+        if (!hasSeenHint.Value)
         {
             Tools.SendBread("HOLD UP!", "Make sure OSC is enabled in VRChat or this will do nothing! lol");
-            Plugin.IsFirstOpen = false;
+            hasSeenHint.SetSerializedValue("true");
         }
         Plugin.Instance.ToggleChatMode();
     }

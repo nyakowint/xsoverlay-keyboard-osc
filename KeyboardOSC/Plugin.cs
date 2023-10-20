@@ -1,6 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
+using System.Threading;
 using BepInEx;
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using KeyboardOSC.XScripts;
@@ -11,13 +14,13 @@ using XSOverlay;
 
 namespace KeyboardOSC
 {
-    [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", "1.0.0.0")]
+    [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", "1.0.1.1")]
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin Instance;
         public static ManualLogSource PluginLogger;
-        public static bool IsFirstOpen = true;
-        public static bool IsChatModeActive = false;
+        private static bool _isDebugConfig;
+        public static bool IsChatModeActive;
         public Overlay_Manager overlayManager;
         public KeyboardInputHandler inputHandler;
         public GameObject chatButtonObj;
@@ -26,18 +29,29 @@ namespace KeyboardOSC
 
         public static MethodInfo ReleaseStickyKeys;
 
+        private void Awake()
+        {
+#if DEBUG
+            _isDebugConfig = true;
+#endif
+            PluginLogger = Logger;
+            if (Instance != null) Destroy(this);
+            PluginSettings.ConfigFile = Config;
+            PluginSettings.Init();
+            if (!Environment.CommandLine.Contains("-batchmode") || _isDebugConfig) return;
+            Logger.LogWarning("XSOverlay runs in batchmode normally (headless, without a window).");
+            Logger.LogWarning("To see extended logs launch XSOverlay directly.");
+        }
+
         private void Start()
         {
-            PluginLogger = Logger;
-            Logger.LogWarning("Starting Pre-setup");
-            if (Instance != null) Destroy(this);
+            Logger.LogWarning("It works! Starting Pre-setup");
             Instance = this;
             Console.Title = "XSO BepInEx Console";
 
             ReleaseStickyKeys = AccessTools.Method(typeof(KeyboardInputHandler), "ReleaseStickyKeys");
-            Patches.DoPatches();
-            
-            
+            Patches.PatchAll();
+
             ServerBridge.Instance.CommandMap["Keyboard"] = delegate
             {
                 InitializeKeyboard();
@@ -71,13 +85,13 @@ namespace KeyboardOSC
             chatButtonObj.transform.Find("Image").GetComponent<Image>().sprite = "chat".GetSprite();
             chatButtonObj.Rename("OSC Keyboard Mode");
 
-            
+
             // Create typing bar
             var oscBarRoot = new GameObject("TypingBarOverlay");
             oscBarRoot.SetActive(false);
             keyboardWindowObj.SetActive(false);
             oscBarRoot.AddComponent<OverlayTopLevelObject>();
-            
+
             oscBarWindowObj = Instantiate(keyboardWindow.gameObject, oscBarRoot.transform);
             oscBarWindowObj.Rename("TypingBar Overlay");
             oscBarWindowObj.DestroyComponent<KeyboardGlobalManager>();
@@ -88,7 +102,7 @@ namespace KeyboardOSC
             oscBarWindowObj.GetComponent<OverlayIdentifier>().OverlayTopLevelObject = oscBarRoot;
             oscBarWindow.overlayName = "chatbar";
             oscBarWindow.overlayKey = "chatbar";
-            
+
             oscBarWindow.isMoveable = false;
 
 
@@ -142,12 +156,12 @@ namespace KeyboardOSC
                 var newTrans = overlay.transform;
                 var newPos = newTrans.position;
                 const float offset = 0.155f;
-                obwTransform.position = newPos + newTrans.up * offset  ;
+                obwTransform.position = newPos + newTrans.up * offset;
                 obwTransform.rotation = newTrans.rotation;
             };
 
             kbBackground.transform.localPosition = Vector3.zero;
-            
+
             kbBackground.GetComponent<RectTransform>().sizeDelta = new Vector2(4130, 475);
 
             camTrans.position = canvasTrans.position;
@@ -176,7 +190,7 @@ namespace KeyboardOSC
         {
             var chatButton = chatButtonObj.GetComponent<Button>();
             var buttonColors = chatButton.colors;
-            
+
             ReleaseStickyKeys.Invoke(inputHandler, null);
 
             IsChatModeActive = !IsChatModeActive;
