@@ -5,9 +5,12 @@ A personal plugin to make chatbox typing in VRChat easier for me. Inspired by th
 * personally I like XSOverlay better than OVRTK
 * cause i can kekw
 
+# This requires you set `HideManagerGameObject` to true in Bepinex config for xso builds 625 and later. probably a unity moment dont go blaming xiexe
+
+i will fix soontm
+
 I'm mostly sharing it so others can use it if they want to
 
-hi xiexe [lol](https://discord.com/channels/627951491381985329/627951491381985333/681984395212881969)
 
 ## Installation
 
