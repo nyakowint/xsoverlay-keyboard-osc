@@ -1,14 +1,12 @@
 # XSOverlay Keyboard OSC
 
 A personal plugin to make chatbox typing in VRChat easier for me. Inspired by the OSC button found inside OVR Toolkit.
-I'm mostly sharing it so others can use it if they want to
 
 ## Installation
 
 > [!NOTE]
-> Make sure you have switched to the `beta` branch of XSOverlay. You can do this under Properties > Betas \
-> This *might* work on the live branch but I don't use it and thus haven't tested it ~ YMMV. \
-> Latest tested build: Build 625 UI3.0 RC5
+> This is not officially supported. Use at your own risk.\
+> This should work on any recent version of XSOverlay starting with build 627! (20th Oct.)
 
 
 1. [Follow the BepInEx install guide](https://docs.bepinex.dev/articles/user_guide/installation/index.html) into
@@ -23,6 +21,7 @@ I'm mostly sharing it so others can use it if they want to
 Click it. A bar should pop up above the keyboard. If not, move the
    keyboard around and it should pop up.
 6. congration you done it
+   - You may also want to disable XSO analytics while using the plugin, but that's up to you, i'm not the one getting error logs XD
 
 ### Removing the plugin
 
