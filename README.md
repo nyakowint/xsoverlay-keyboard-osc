@@ -12,16 +12,15 @@ A personal plugin to make chatbox typing in VRChat easier for me. Inspired by th
 1. [Follow the BepInEx install guide](https://docs.bepinex.dev/articles/user_guide/installation/index.html) into
    XSOverlay.
 2. Download both the plugin DLL **and** `BepInEx.cfg` from [Releases](../../releases/latest)
-3. **:bangbang: IMPORTANT :bangbang:**: Move `KeyboardOSC.dll` into `<xso folder>/BepInEx/plugins` folder,
+3. **:bangbang:** Move `KeyboardOSC.dll` into `<xso folder>/BepInEx/plugins` folder,
    and `BepInEx.cfg` into `<xso folder>/BepInEx/config` folder.
     - **Make sure you have done the second part.** if you dont then you will have a quite useless plugin :L
     - or set it yourself: `HideManagerGameObject = true`
 4. Start XSOverlay
-5. If you did everything right you should have a message icon on the keyboard toolbar (right). \
-Click it. A bar should pop up above the keyboard. If not, move the
-   keyboard around and it should pop up.
-6. congration you done it
-   - You may also want to disable XSO analytics while using the plugin, but that's up to you, i'm not the one getting error logs XD
+5. You should have a message icon on the right side keyboard toolbar, press it. \
+   A bar should pop up above the keyboard. If not, move the keyboard around and it should pop up.
+7. Make sure you have OSC enabled in VRChat or the Chatbox mod for chillout
+8. congration you done it
 
 ### Removing the plugin
 
@@ -35,15 +34,16 @@ Use the following shortcut keys:
 | Shortcut Key | Function   
 | ---------------- | --------
 | <kbd>TAB</kbd> | Toggle silent msg (orange text)
-| <kbd>ESC</kbd> | Clear current text
 | <kbd>Backspace</kbd> or <kbd>Delete</kbd> | Delete last character from right (bksp) or left (del)
+| <kbd>ESC</kbd> | Clear current text
 | <kbd>END</kbd> | Clear last sent message (equivalent to pressing "Clear Chatbox" in radial menu)
 | <kbd>INSERT</kbd> | Replace current text with your last message
 | <kbd>CTRL</kbd> + <kbd>C</kbd> | Copy current text to clipboard
 | <kbd>CTRL</kbd> + <kbd>V</kbd> | Paste text from your clipboard
-| <kbd>CTRL</kbd> + <kbd>Backspace</kbd> | Delete last word (this one is weird as holding ctrl doesnt actually mean
-holding ctrl) |
+| <kbd>CTRL</kbd> + <kbd>Backspace</kbd> | Delete last word (works very jankily) |
 | <kbd>ENTER</kbd> | Send message to the chatbox!
+
+I cannot guarantee full functionality with the CVR chatbox mod, as this is built with VRChat's OSC routes in mind. They were identical last I checked.
 
 ## Unplanned features
 
@@ -54,9 +54,10 @@ holding ctrl) |
 
 - Positioning is still a little weird, especially if you scale the keyboard
 
-Steam might not instantly detect XSOverlay as closed. Not a big deal but this is out of my control just so you know
+- ~~Steam might not instantly detect XSOverlay as closed.~~
+   - This was *not* a bie/plugin issue, Xiexe has since fixed this. woohoo
 
-If you find any other issues create an issue so i can remember to try and fix it when i feel like it
+If you have any other annoyances raise an issue and I might be able to fix it
 
 ## Build from source
 
@@ -67,9 +68,6 @@ config. dll will be in `builds` folder
 
 (or moved to your plugins folder if you used debug and have XSO on your C drive loool)
 
-## Why a mod for a vr overlay?
-
-* I like XSOverlay better than OVRTK. No, you _dont_ have to agree with me.
-* Xiexe plate
-  of [feature requests](https://github.com/Xiexe/XSOverlay-Issue-Tracker/issues?q=is%3Aissue+is%3Aopen+label%3A"feature+req.")
-  is far too long for me to wait for it to be added. lol.
+Why a mod for a vr overlay?
+I like XSOverlay better than OVRTK. No, you _dont_ have to agree with me.
+lol
