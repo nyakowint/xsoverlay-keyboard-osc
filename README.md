@@ -59,6 +59,8 @@ I cannot guarantee full functionality with the CVR chatbox mod, as this is built
 
 If you have any other annoyances raise an issue and I might be able to fix it
 
+If you need help you can do the above or ask in my dev server [discord](https://discord.gg/BrUacrw4cy)
+
 ## Build from source
 
 Check the .csproj or actions workflow
