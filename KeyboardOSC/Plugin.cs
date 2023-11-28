@@ -46,8 +46,8 @@ namespace KeyboardOSC
         private void Start()
         {
             Instance = this;
-            Logger.LogInfo("this is a start function!");
-            Console.Title = "XSOverlay - KeyboardOSC";
+            Logger.LogInfo("hi!");
+            Console.Title = "KeyboardOSC - XSOverlay";
 
             ReleaseStickyKeys = AccessTools.Method(typeof(KeyboardInputHandler), "ReleaseStickyKeys");
             Patches.PatchAll();
@@ -65,11 +65,10 @@ namespace KeyboardOSC
             Logger.LogInfo("Keyboard opened for the first time, initializing KeyboardOSC Plugin.");
             overlayManager = Overlay_Manager.Instance;
             inputHandler = overlayManager.Keyboard.GetComponent<KeyboardInputHandler>();
-            
-            ServerBridge.Instance.CommandMap["Keyboard"] = delegate
-            {
-                Overlay_Manager.Instance.EnableKeyboard();
-            };
+
+            SetupAdditionalGameObjects();
+
+            ServerBridge.Instance.CommandMap["Keyboard"] = delegate { Overlay_Manager.Instance.EnableKeyboard(); };
         }
 
         private void SetupAdditionalGameObjects()
@@ -85,7 +84,7 @@ namespace KeyboardOSC
             chatButtonObj.AddComponent<ToggleChatButton>();
             chatButtonObj.transform.Find("Image").GetComponent<Image>().sprite = "chat".GetSprite();
             chatButtonObj.Rename("KeyboardOSC Toggle");
-            
+
             // Create typing bar
             var oscBarRoot = new GameObject("KeyboardOSC Root");
             oscBarRoot.SetActive(false);
@@ -103,7 +102,7 @@ namespace KeyboardOSC
             oscBarWindow.overlayName = "chatbar";
             oscBarWindow.overlayKey = "chatbar";
             oscBarWindow.isMoveable = false;
-            
+
             oscBarCanvas = Instantiate(keyboard.transform.Find("Keyboard Canvas | Manager"),
                 oscBarRoot.transform, true).gameObject;
             var kbBackground = oscBarCanvas.transform.Find("Keyboard Background").gameObject;
@@ -131,8 +130,8 @@ namespace KeyboardOSC
             var rescaleToCanvas = oscBarCameraObj.AddComponent<RescaleCamToCanvas>();
             rescaleToCanvas.canvas = oscBarCanvas.GetComponent<RectTransform>();
             rescaleToCanvas.camera = oscBarCamera;
-
-            // 100 1000
+            
+            
             oscBarWindow.renderTexHeightOverride = 60;
             oscBarWindow.renderTexWidthOverride = 730;
             oscBarWindow.widthInMeters = 0.55f;
@@ -140,9 +139,8 @@ namespace KeyboardOSC
             oscBarWindow.OverlayCanvas = oscBarCanvas.GetComponent<RectTransform>();
 
             oscBarWindow.canvasGraphicsCaster = oscBarCanvas.GetComponent<GraphicRaycaster>();
-            
-            // positioning bullshit
-            
+
+            // KEEP or the bar's camera will be borked
             oscBarRoot.transform.position = new Vector3(0.3f, 1, 0);
 
             var keyboardPos = Overlay_Manager.Instance.Keyboard_Overlay.transform;
@@ -150,22 +148,18 @@ namespace KeyboardOSC
             obwTransform.position = keyboardPos.TransformDirection(0, 0.01f, 0);
             obwTransform.rotation = new Quaternion(0, 0, 0, 0);
 
-            /*XSOEventSystem.OnGrabbedOrDroppedOverlay += (overlay, _, grabbed) =>
+            XSOEventSystem.OnGrabbedOrDroppedOverlay += (targetOverlay, _, grabbed) =>
             {
-                if (overlay.overlayKey != "xso.overlay.keyboard" || grabbed) return;
-                var newTrans = overlay.transform;
-                obwTransform.position = newTrans.TransformPoint(0, 0.155f, 0);
-                obwTransform.rotation = newTrans.rotation;
-                oscBarWindow.opacity = overlay.opacity;
-            };*/
+                if (targetOverlay.overlayKey != "xso.overlay.keyboard" || grabbed) return;
+                RepositionBar(oscBarWindow, targetOverlay);
+            };
 
             kbBackground.transform.localPosition = Vector3.zero;
-
             kbBackground.GetComponent<RectTransform>().sizeDelta = new Vector2(4130, 475);
 
             camTrans.position = canvasTrans.position;
             camTrans.rotation = canvasTrans.rotation;
-
+            //
             var oscBarTextObj = Instantiate(keyboard.transform
                 .Find("Keyboard Canvas | Manager/Keyboard Background/KeyboardSettings/Options/Audio Toggle/Text (TMP)")
                 .gameObject, kbBackground.transform);
@@ -183,6 +177,15 @@ namespace KeyboardOSC
 
             oscBarRoot.SetActive(true);
             keyboardWindowObj.SetActive(true);
+            WindowMovementManager.MoveToEdgeOfWindowAndInheritRotation(oscBarWindow, keyboardWindow,
+                -0.1f, 0f, 1);
+        }
+
+        public void RepositionBar(Unity_Overlay barOverlay, Unity_Overlay keebOverlay)
+        {
+            WindowMovementManager.ScaleOverlayToScale(keebOverlay.widthInMeters - 0.1f, 0.1f, barOverlay);
+            WindowMovementManager.MoveToEdgeOfWindowAndInheritRotation(barOverlay, keebOverlay,
+                Vector3.Distance(keebOverlay.transform.position, barOverlay.transform.position) * 0.05f, 0f, 1);
         }
 
         public void ToggleChatMode()
@@ -192,6 +195,12 @@ namespace KeyboardOSC
             IsChatModeActive = !IsChatModeActive;
             oscBarWindowObj.SetActive(IsChatModeActive);
 
+            var barOverlay = oscBarWindowObj.GetComponent<Unity_Overlay>();
+            if (IsChatModeActive)
+            {
+                RepositionBar(barOverlay, overlayManager.Keyboard_Overlay);
+            }
+
             SetToggleColor();
         }
 
@@ -199,7 +208,7 @@ namespace KeyboardOSC
         {
             var chatButton = chatButtonObj.GetComponent<Button>();
             var buttonColors = chatButton.colors;
-            
+
             buttonColors.normalColor = (IsChatModeActive
                 ? UIThemeHandler.Instance.T_HiTone
                 : UIThemeHandler.Instance.T_DarkTone);

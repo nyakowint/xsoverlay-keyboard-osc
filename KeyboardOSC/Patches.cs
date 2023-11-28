@@ -55,25 +55,13 @@ public static class Patches
     {
         XSettingsManager.Instance.Settings.SendAnalytics = false;
     }
-
-    /*public static void ScalePatchOld(float dist, Unity_Overlay activeOverlay, float StartingWidth)
-    {
-        if (!Plugin.IsChatModeActive || activeOverlay.overlayKey != "xso.overlay.keyboard") return;
-        /*var barOverlay = Plugin.Instance.oscBarWindowObj.GetComponent<Unity_Overlay>();
-        barOverlay.widthInMeters = activeOverlay.widthInMeters - 0.01f;#1#
-        var chatBar = Plugin.Instance.oscBarWindowObj.GetComponent<Unity_Overlay>().transform;
-        chatBar.position = chatBar.TransformPoint(Vector3.Distance(Overlay_Manager.Instance.Keyboard.transform.localPosition, chatBar.localPosition) * Vector3.up);
-    }*/
-
-
+    
     public static void ScalePatch(float dist, Unity_Overlay activeOverlay, float StartingWidth)
     {
         if (!Plugin.IsChatModeActive || activeOverlay.overlayKey != "xso.overlay.keyboard") return;
         var chatBar = Plugin.Instance.oscBarWindowObj.GetComponent<Unity_Overlay>();
-        WindowMovementManager.ScaleOverlayToScale(activeOverlay.widthInMeters - 0.01f, 0.1f, chatBar);
         chatBar.opacity = activeOverlay.opacity;
-        WindowMovementManager.MoveToEdgeOfWindowAndInheritRotation(chatBar, activeOverlay,
-            Vector3.Distance(activeOverlay.transform.position, chatBar.transform.position) * 0.02f, 0f, 1);
+        Plugin.Instance.RepositionBar(chatBar, activeOverlay);
     }
 
     public static bool BlockInput(VirtualKeyCode keyCode)
