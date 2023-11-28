@@ -14,7 +14,7 @@ using XSOverlay;
 
 namespace KeyboardOSC
 {
-    [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", "1.0.1.1")]
+    [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", "1.1.0.0")]
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin Instance;
@@ -45,9 +45,9 @@ namespace KeyboardOSC
 
         private void Start()
         {
-            Logger.LogWarning("It works! Starting Pre-setup");
             Instance = this;
-            Console.Title = "XSO BepInEx Console";
+            Logger.LogInfo("this is a start function!");
+            Console.Title = "XSOverlay - KeyboardOSC";
 
             ReleaseStickyKeys = AccessTools.Method(typeof(KeyboardInputHandler), "ReleaseStickyKeys");
             Patches.PatchAll();
@@ -62,38 +62,38 @@ namespace KeyboardOSC
         public void InitializeKeyboard()
         {
             // Plugin startup logic
-            Logger.LogInfo("Initializing Keyboard OSC Plugin.");
+            Logger.LogInfo("Keyboard opened for the first time, initializing KeyboardOSC Plugin.");
             overlayManager = Overlay_Manager.Instance;
-
             inputHandler = overlayManager.Keyboard.GetComponent<KeyboardInputHandler>();
-            SetupAdditionalGameObjects();
-
-            ServerBridge.Instance.CommandMap["Keyboard"] = delegate { Overlay_Manager.Instance.EnableKeyboard(); };
+            
+            ServerBridge.Instance.CommandMap["Keyboard"] = delegate
+            {
+                Overlay_Manager.Instance.EnableKeyboard();
+            };
         }
 
         private void SetupAdditionalGameObjects()
         {
             // Copy existing lock keyboard to create new button
-            var keyboardOverlay = overlayManager.Keyboard;
+            var keyboard = overlayManager.Keyboard;
             var keyboardWindow = overlayManager.Keyboard_Overlay;
             var keyboardWindowObj = overlayManager.Keyboard_Overlay.gameObject;
 
-            var lockKeyboard = keyboardOverlay.GetComponentInChildren<LockKeyboardButton>(true).gameObject;
+            var lockKeyboard = keyboard.GetComponentInChildren<LockKeyboardButton>(true).gameObject;
             chatButtonObj = Instantiate(lockKeyboard, lockKeyboard.transform.parent);
             chatButtonObj.DestroyComponent<LockKeyboardButton>();
             chatButtonObj.AddComponent<ToggleChatButton>();
             chatButtonObj.transform.Find("Image").GetComponent<Image>().sprite = "chat".GetSprite();
-            chatButtonObj.Rename("OSC Keyboard Mode");
-
-
+            chatButtonObj.Rename("KeyboardOSC Toggle");
+            
             // Create typing bar
-            var oscBarRoot = new GameObject("TypingBarOverlay");
+            var oscBarRoot = new GameObject("KeyboardOSC Root");
             oscBarRoot.SetActive(false);
             keyboardWindowObj.SetActive(false);
             oscBarRoot.AddComponent<OverlayTopLevelObject>();
 
             oscBarWindowObj = Instantiate(keyboardWindow.gameObject, oscBarRoot.transform);
-            oscBarWindowObj.Rename("TypingBar Overlay");
+            oscBarWindowObj.Rename("KeyboardOSC Window");
             oscBarWindowObj.DestroyComponent<KeyboardGlobalManager>();
             oscBarWindowObj.DestroyComponent<ReparentToTarget>();
             oscBarWindowObj.AddComponent<ReparentBar>();
@@ -102,14 +102,12 @@ namespace KeyboardOSC
             oscBarWindowObj.GetComponent<OverlayIdentifier>().OverlayTopLevelObject = oscBarRoot;
             oscBarWindow.overlayName = "chatbar";
             oscBarWindow.overlayKey = "chatbar";
-
             oscBarWindow.isMoveable = false;
-
-
-            oscBarCanvas = Instantiate(keyboardOverlay.transform.Find("Keyboard Canvas | Manager"),
+            
+            oscBarCanvas = Instantiate(keyboard.transform.Find("Keyboard Canvas | Manager"),
                 oscBarRoot.transform, true).gameObject;
             var kbBackground = oscBarCanvas.transform.Find("Keyboard Background").gameObject;
-            oscBarCanvas.Rename("OSCBar Canvas");
+            oscBarCanvas.Rename("KeyboardOSC Bar Canvas");
             oscBarCanvas.GetComponent<Canvas>().referencePixelsPerUnit = 420;
             Destroy(oscBarCanvas.transform.Find("KeyboardToolbar").gameObject);
             Destroy(oscBarCanvas.transform.Find("Keyboard Background/KeyboardLayout").gameObject);
@@ -122,7 +120,7 @@ namespace KeyboardOSC
                 }
             }
 
-            var oscBarCameraObj = Instantiate(keyboardOverlay.GetComponentInChildren<Camera>().gameObject,
+            var oscBarCameraObj = Instantiate(keyboard.GetComponentInChildren<Camera>().gameObject,
                 oscBarRoot.transform);
             var oscBarCamera = oscBarCameraObj.GetComponent<Camera>();
             var camTrans = oscBarCamera.transform;
@@ -142,23 +140,24 @@ namespace KeyboardOSC
             oscBarWindow.OverlayCanvas = oscBarCanvas.GetComponent<RectTransform>();
 
             oscBarWindow.canvasGraphicsCaster = oscBarCanvas.GetComponent<GraphicRaycaster>();
-
+            
+            // positioning bullshit
+            
             oscBarRoot.transform.position = new Vector3(0.3f, 1, 0);
 
-            var keyboardPos = Overlay_Manager.Instance.Keyboard_Overlay.transform.position;
+            var keyboardPos = Overlay_Manager.Instance.Keyboard_Overlay.transform;
             var obwTransform = oscBarWindow.transform;
-            obwTransform.position = new Vector3(keyboardPos.x, keyboardPos.y + 0.01f, keyboardPos.z);
+            obwTransform.position = keyboardPos.TransformDirection(0, 0.01f, 0);
             obwTransform.rotation = new Quaternion(0, 0, 0, 0);
 
-            XSOEventSystem.OnGrabbedOrDroppedOverlay += (overlay, _, grabbed) =>
+            /*XSOEventSystem.OnGrabbedOrDroppedOverlay += (overlay, _, grabbed) =>
             {
                 if (overlay.overlayKey != "xso.overlay.keyboard" || grabbed) return;
                 var newTrans = overlay.transform;
-                var newPos = newTrans.position;
-                const float offset = 0.155f;
-                obwTransform.position = newPos + newTrans.up * offset;
+                obwTransform.position = newTrans.TransformPoint(0, 0.155f, 0);
                 obwTransform.rotation = newTrans.rotation;
-            };
+                oscBarWindow.opacity = overlay.opacity;
+            };*/
 
             kbBackground.transform.localPosition = Vector3.zero;
 
@@ -167,13 +166,13 @@ namespace KeyboardOSC
             camTrans.position = canvasTrans.position;
             camTrans.rotation = canvasTrans.rotation;
 
-            var oscBarTextObj = Instantiate(keyboardOverlay.transform
+            var oscBarTextObj = Instantiate(keyboard.transform
                 .Find("Keyboard Canvas | Manager/Keyboard Background/KeyboardSettings/Options/Audio Toggle/Text (TMP)")
                 .gameObject, kbBackground.transform);
             Destroy(oscBarCanvas.transform.Find("Keyboard Background/KeyboardSettings").gameObject);
-            oscBarTextObj.Rename("TypingBar Text");
+            oscBarTextObj.Rename("KeyboardOSC Bar Text");
             var oscbarText = oscBarTextObj.GetComponent<TextMeshProUGUI>();
-            XSTools.SetTMPUIText(oscbarText, "Type something silly! \"I bet you can't even read.\"");
+            XSTools.SetTMPUIText(oscbarText, "type something silly");
             oscbarText.fontSize = 250f;
             oscbarText.fontSizeMax = 250f;
             oscbarText.horizontalAlignment = HorizontalAlignmentOptions.Center;
@@ -188,14 +187,19 @@ namespace KeyboardOSC
 
         public void ToggleChatMode()
         {
-            var chatButton = chatButtonObj.GetComponent<Button>();
-            var buttonColors = chatButton.colors;
-
             ReleaseStickyKeys.Invoke(inputHandler, null);
 
             IsChatModeActive = !IsChatModeActive;
             oscBarWindowObj.SetActive(IsChatModeActive);
 
+            SetToggleColor();
+        }
+
+        private void SetToggleColor()
+        {
+            var chatButton = chatButtonObj.GetComponent<Button>();
+            var buttonColors = chatButton.colors;
+            
             buttonColors.normalColor = (IsChatModeActive
                 ? UIThemeHandler.Instance.T_HiTone
                 : UIThemeHandler.Instance.T_DarkTone);

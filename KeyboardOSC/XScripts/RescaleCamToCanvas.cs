@@ -2,7 +2,7 @@
 
 namespace KeyboardOSC.XScripts;
 
-// Sourced from decompiled XSOverlay Beta 616, editor scripts moment
+// Sourced from Beta 616
 public class RescaleCamToCanvas : MonoBehaviour
 {
     public RectTransform canvas;
