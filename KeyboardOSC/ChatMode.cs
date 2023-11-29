@@ -12,7 +12,7 @@ using XSOverlay;
 
 namespace KeyboardOSC;
 
-public static class ChatModeManager
+public static class ChatMode
 {
     private static bool _isSilentMsg;
     private static bool _allowPartialSend;
@@ -63,7 +63,6 @@ public static class ChatModeManager
 
                 _currentText = _currentText.Remove(key is VirtualKeyCode.DELETE ? 0 : _currentText.Length - 1, 1);
                 UpdateChatText(_currentText);
-                Logger.LogInfo("deleting chat text: " + _currentText);
                 return;
             }
             // silent switch (no sound on send, no typing indicator)
@@ -122,7 +121,6 @@ public static class ChatModeManager
         SendTyping(true);
         _currentText += character;
         UpdateChatText(_currentText);
-        Logger.LogInfo("updating chat text with " + _currentText);
     }
 
     private static void SendMessage(string address, string msg, bool now, bool sound)

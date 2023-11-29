@@ -47,7 +47,7 @@ public static class Patches
 
     public static bool KeyboardPatch(KeyboardKey.VirtualKeyEventData keyEventData)
     {
-        if (Plugin.IsChatModeActive) ChatModeManager.HandleKey(keyEventData);
+        if (Plugin.IsChatModeActive) ChatMode.HandleKey(keyEventData);
         return true;
     }
 

@@ -183,7 +183,7 @@ namespace KeyboardOSC
             oscbarText.verticalAlignment = VerticalAlignmentOptions.Middle;
 
             
-            ChatModeManager.Setup(oscbarText);
+            ChatMode.Setup(oscbarText);
             oscBarRoot.SetActive(true);
             keyboardWindowObj.SetActive(true);
             WindowMovementManager.MoveToEdgeOfWindowAndInheritRotation(oscBarWindow, keyboardWindow,
