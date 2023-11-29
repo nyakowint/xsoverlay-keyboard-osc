@@ -1,46 +1,60 @@
 # XSOverlay Keyboard OSC
 
-A personal plugin to make chatbox typing in VRChat easier for me. Inspired by the OSC button found inside OVR Toolkit.
+A extension for XSOverlay to make text communication in VRChat easier.
 
-## Installation
 
 > [!NOTE]
-> This is not officially supported. Use at your own risk.\
-> This should work on any recent version of XSOverlay starting with build 627! (20th Oct.)
+> This is a third-party modification to [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/). Use at your own discretion\
+> Last tested with build 649. It should work on any recent version.
+
+## Auto Install
+
+Navigate to your XSOverlay folder, open a PowerShell window, and paste the following \
+(If you're unsure open Steam and go to XSOverlay > Manage > Browse local files)
+
+```pwsh
+Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/install.ps1" | Invoke-Expression
+```
+
+If you have any issues try manually installing with the instructions below.
 
 
+## Manual Installation
 1. [Follow the BepInEx install guide](https://docs.bepinex.dev/articles/user_guide/installation/index.html) into
    XSOverlay.
 2. Download both the plugin DLL **and** `BepInEx.cfg` from [Releases](../../releases/latest)
-3. **:bangbang:** Move `KeyboardOSC.dll` into `<xso folder>/BepInEx/plugins` folder,
+3. **IMPORTANT**: Move `KeyboardOSC.dll` into `<xso folder>/BepInEx/plugins` folder,
    and `BepInEx.cfg` into `<xso folder>/BepInEx/config` folder.
     - **Make sure you have done the second part.** if you dont then you will have a quite useless plugin :L
     - or set it yourself: `HideManagerGameObject = true`
 4. Start XSOverlay
-5. You should have a message icon on the right side keyboard toolbar, press it. \
-   A bar should pop up above the keyboard. If not, move the keyboard around and it should pop up.
-7. Make sure you have OSC enabled in VRChat or the Chatbox mod for chillout
-8. congration you done it
+5. If you did everything right you should have a message icon on the keyboard toolbar (right). \
+Click it. A bar should pop up above the keyboard. If not, move the
+   keyboard around and it should pop up.
+1. congration you done it
+   - You may also want to disable XSO analytics while using the plugin, but that's up to you, i'm not the one getting error logs XD
 
 ### Removing the plugin
 
 - Delete `BepInEx`, `doorstop_config.ini`, `winhttp.dll` and other non overlay files from your XSOverlay folder
 
-## Features/Usage
+# Features/Usage
 
 Send messages to the chatbox just like in OVR Toolkit!
 
 Use the following shortcut keys:
 | Shortcut Key | Function   
 | ---------------- | --------
-| <kbd>TAB</kbd> | Toggle silent msg (orange text)
+| <kbd>TAB</kbd> | Toggle silent msg (orange text, disables typing indicator and chatbox noise)
+| <kbd>ESC</kbd> | Clear current text
 | <kbd>Backspace</kbd> or <kbd>Delete</kbd> | Delete last character from right (bksp) or left (del)
 | <kbd>ESC</kbd> | Clear current text
 | <kbd>END</kbd> | Clear last sent message (equivalent to pressing "Clear Chatbox" in radial menu)
+| <kbd>F6</kbd> | Toggle "partial send" mode (Send messages as you're typing them)
 | <kbd>INSERT</kbd> | Replace current text with your last message
 | <kbd>CTRL</kbd> + <kbd>C</kbd> | Copy current text to clipboard
 | <kbd>CTRL</kbd> + <kbd>V</kbd> | Paste text from your clipboard
-| <kbd>CTRL</kbd> + <kbd>Backspace</kbd> | Delete last word (works very jankily) |
+| <kbd>CTRL</kbd> + <kbd>Backspace</kbd> | Delete last word (this one is weird as holding ctrl doesnt actually mean holding ctrl) |
 | <kbd>ENTER</kbd> | Send message to the chatbox!
 
 I cannot guarantee full functionality with the CVR chatbox mod, as this is built with VRChat's OSC routes in mind. They were identical last I checked.
@@ -52,14 +66,11 @@ I cannot guarantee full functionality with the CVR chatbox mod, as this is built
 
 ## Known Issues
 
-- Positioning is still a little weird, especially if you scale the keyboard
+- The bar will be positioned significantly higher than intended until moved/scaled. I consider this a non-issue
+  
+If you find any, create an issue so i can remember to try and fix it when i feel like it
 
-- ~~Steam might not instantly detect XSOverlay as closed.~~
-   - This was *not* a bie/plugin issue, Xiexe has since fixed this. woohoo
-
-If you have any other annoyances raise an issue and I might be able to fix it
-
-If you need help you can do the above or ask in my dev server [discord](https://discord.gg/BrUacrw4cy)
+If you still need help you can find me in my dev server [discord](https://discord.gg/BrUacrw4cy)
 
 ## Build from source
 
@@ -68,8 +79,7 @@ Check the .csproj or actions workflow
 but if you wanna build this just drop the dlls from `XSOverlay_Data/Managed` into `refs`, restore and build w/ Release
 config. dll will be in `builds` folder
 
-(or moved to your plugins folder if you used debug and have XSO on your C drive loool)
+## Why a mod for a vr overlay?
 
-Why a mod for a vr overlay?
-I like XSOverlay better than OVRTK. No, you _dont_ have to agree with me.
-lol
+* I like the control scheme of XSOverlay better than OVRTK. No, you _dont_ have to agree with me.
+* Why wait for it to be added when you can do it yourself? lol

@@ -1,18 +1,16 @@
 ﻿using System.Collections.Generic;
-using BepInEx.Logging;
 using HarmonyLib;
+using UnityEngine;
 using WindowsInput;
 using WindowsInput.Native;
 using XSOverlay;
 
-// ReSharper disable SwitchStatementHandlesSomeKnownEnumValuesWithDefault
-
 namespace KeyboardOSC;
 
+// ReSharper disable InconsistentNaming
 public static class Patches
 {
-    private static readonly ManualLogSource Logger = Plugin.PluginLogger;
-    public static Harmony Harmony;
+    private static Harmony Harmony;
 
     public static void PatchAll()
     {
@@ -39,8 +37,9 @@ public static class Patches
         Harmony.Patch(keyPress, prefix: blockInputPatch);
         Harmony.Patch(keyDown, prefix: blockInputPatch);
         Harmony.Patch(keyUp, prefix: blockInputPatch);
-        
-        // Disable analytics by default (Xiexe loves seeing plugin errors im sure XD)
+
+        // Disable analytics by default (Xiexe loves seeing my plugin errors im sure XD)
+        // can be turned back on after launching if you want to send him stuff for some reason
         var initAnalytics = AccessTools.Method(typeof(AnalyticsManager), "Initialize");
         var analyticsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(AnalyticsPatch)));
         Harmony.Patch(initAnalytics, postfix: analyticsPatch);
@@ -48,7 +47,7 @@ public static class Patches
 
     public static bool KeyboardPatch(KeyboardKey.VirtualKeyEventData keyEventData)
     {
-        if (Plugin.IsChatModeActive) ChatModeManager.HandleKey(keyEventData);
+        if (Plugin.IsChatModeActive) ChatMode.HandleKey(keyEventData);
         return true;
     }
 
@@ -60,14 +59,15 @@ public static class Patches
     public static void ScalePatch(float dist, Unity_Overlay activeOverlay, float StartingWidth)
     {
         if (!Plugin.IsChatModeActive || activeOverlay.overlayKey != "xso.overlay.keyboard") return;
-        var barOverlay = Plugin.Instance.oscBarWindowObj.GetComponent<Unity_Overlay>();
-        barOverlay.widthInMeters = activeOverlay.widthInMeters - 0.01f;
+        var chatBar = Plugin.Instance.oscBarWindowObj.GetComponent<Unity_Overlay>();
+        chatBar.opacity = activeOverlay.opacity;
+        Plugin.Instance.RepositionBar(chatBar, activeOverlay);
     }
 
     public static bool BlockInput(VirtualKeyCode keyCode)
     {
         if (!Plugin.IsChatModeActive) return true;
-        
+
         // small caveat with the way i'm doing this:
         // modifier keys still get passed to windows so that i don't have to reimplement xso's logic for them
         var passthroughKeys = new List<VirtualKeyCode>
@@ -76,7 +76,6 @@ public static class Patches
             VirtualKeyCode.LSHIFT, VirtualKeyCode.RSHIFT,
             VirtualKeyCode.LCONTROL, VirtualKeyCode.RCONTROL,
             VirtualKeyCode.LALT, VirtualKeyCode.RALT,
-            // printscreen key cause screenshots sharex ftw
             VirtualKeyCode.CAPITAL, VirtualKeyCode.PRNTSCRN, // aka VirtualKeyCode.SNAPSHOT
 
             // windows keys and media keys so the wrist one still functions+

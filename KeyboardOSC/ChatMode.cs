@@ -12,9 +12,10 @@ using XSOverlay;
 
 namespace KeyboardOSC;
 
-public static class ChatModeManager
+public static class ChatMode
 {
     private static bool _isSilentMsg;
+    private static bool _allowPartialSend;
     private static string _currentText = "";
     private static string _lastMsg = "";
     private static DateTime _lastTypingTime;
@@ -54,16 +55,17 @@ public static class ChatModeManager
                     var lastSpaceIndex = _currentText.LastIndexOf(' ');
                     _currentText = lastSpaceIndex >= 0 ? _currentText.Substring(0, lastSpaceIndex) : "";
                     UpdateChatText(_currentText);
+#if DEBUG
                     Logger.LogInfo("bulk deleting chat text: " + _currentText);
+#endif
                     return;
                 }
 
                 _currentText = _currentText.Remove(key is VirtualKeyCode.DELETE ? 0 : _currentText.Length - 1, 1);
                 UpdateChatText(_currentText);
-                Logger.LogInfo("deleting chat text: " + _currentText);
                 return;
             }
-            // silent switch (no pop sound)
+            // silent switch (no sound on send, no typing indicator)
             case VirtualKeyCode.TAB:
                 _isSilentMsg = !_isSilentMsg;
                 UpdateChatColor();
@@ -72,7 +74,7 @@ public static class ChatModeManager
             case VirtualKeyCode.ESCAPE:
                 _currentText = "";
                 UpdateChatText(_currentText);
-                Logger.LogInfo("clearing chat text");
+                Logger.LogInfo("INPUT CLEARED");
                 SendTyping(false);
                 return;
             case VirtualKeyCode.END:
@@ -92,15 +94,20 @@ public static class ChatModeManager
                 _currentText += GUIUtility.systemCopyBuffer;
                 UpdateChatText(_currentText);
                 return;
+            // that silly "send as you're typing" quirk some other osc apps do
+            // no idea if this will break to the rate limit like my old method did, we'll see
+            case VirtualKeyCode.F6:
+                _allowPartialSend = !_allowPartialSend;
+                break;
         }
 
 
         if (key is VirtualKeyCode.RETURN)
         {
             if (_currentText.Length <= 0) return;
-            Logger.LogInfo("sending chat text: " + _currentText);
+            Logger.LogInfo("CHAT SENT: " + _currentText);
             _lastMsg = _currentText;
-            SendMessage("/chatbox/input", _currentText, true, _isSilentMsg);
+            SendMessage("/chatbox/input", _currentText, true, !_isSilentMsg);
             UpdateChatText("");
             _currentText = "";
             _isSilentMsg = false;
@@ -114,7 +121,6 @@ public static class ChatModeManager
         SendTyping(true);
         _currentText += character;
         UpdateChatText(_currentText);
-        Logger.LogInfo("updating chat text with " + _currentText);
     }
 
     private static void SendMessage(string address, string msg, bool now, bool sound)
@@ -124,9 +130,13 @@ public static class ChatModeManager
 
     private static void SendTyping(bool typing)
     {
-        if (typing && (DateTime.Now - _lastTypingTime).TotalSeconds <= 2) return;
+        if (typing && (DateTime.Now - _lastTypingTime).TotalSeconds <= 2 || _isSilentMsg) return;
         _lastTypingTime = DateTime.Now;
         Tools.SendOsc("/chatbox/typing", typing);
+        if (_allowPartialSend)
+        {
+            SendMessage("/chatbox/input", _currentText, true, false);
+        }
     }
 
     public static void Setup(TextMeshProUGUI obText)
