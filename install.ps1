@@ -9,11 +9,11 @@ Write-Host "Downloading BepInEx..."
 Invoke-WebRequest -Uri $bepInExUrl -OutFile "./BepInEx.zip"
 
 Write-Host "Extracting into current directory..."
-Expand-Archive -Path "./BepInEx.zip" -DestinationPath "./"
+Expand-Archive -Path "./BepInEx.zip" -DestinationPath "./" -Force
 Remove-Item -Path "./BepInEx.zip"
 
-New-Item -ItemType Directory -Path "./BepInEx/config"
-New-Item -ItemType Directory -Path "./BepInEx/plugins"
+New-Item -ItemType Directory -Path "./BepInEx/config" -Force
+New-Item -ItemType Directory -Path "./BepInEx/plugins" -Force
 
 Write-Host "Downloading KeyboardOSC..."
 Invoke-WebRequest -Uri $cfgUrl -OutFile "./BepInEx/config/BepInEx.cfg"
