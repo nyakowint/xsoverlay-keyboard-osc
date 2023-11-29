@@ -175,7 +175,7 @@ namespace KeyboardOSC
             oscBarTextObj.Rename("KeyboardOSC Bar Text");
             
             var oscbarText = oscBarTextObj.GetComponent<TextMeshProUGUI>();
-            XSTools.SetTMPUIText(oscbarText, "type something silly");
+            XSTools.SetTMPUIText(oscbarText, "type something silly!");
             
             oscbarText.fontSize = 250f;
             oscbarText.fontSizeMax = 250f;
