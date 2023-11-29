@@ -48,6 +48,7 @@ Use the following shortcut keys:
 | <kbd>TAB</kbd> | Toggle silent msg (orange text, disables typing indicator and chatbox noise)
 | <kbd>ESC</kbd> | Clear current text
 | <kbd>Backspace</kbd> or <kbd>Delete</kbd> | Delete last character from right (bksp) or left (del)
+| <kbd>ESC</kbd> | Clear current text
 | <kbd>END</kbd> | Clear last sent message (equivalent to pressing "Clear Chatbox" in radial menu)
 | <kbd>F6</kbd> | Toggle "partial send" mode (Send messages as you're typing them)
 | <kbd>INSERT</kbd> | Replace current text with your last message
@@ -55,6 +56,8 @@ Use the following shortcut keys:
 | <kbd>CTRL</kbd> + <kbd>V</kbd> | Paste text from your clipboard
 | <kbd>CTRL</kbd> + <kbd>Backspace</kbd> | Delete last word (this one is weird as holding ctrl doesnt actually mean holding ctrl) |
 | <kbd>ENTER</kbd> | Send message to the chatbox!
+
+I cannot guarantee full functionality with the CVR chatbox mod, as this is built with VRChat's OSC routes in mind. They were identical last I checked.
 
 ## Unplanned features
 
