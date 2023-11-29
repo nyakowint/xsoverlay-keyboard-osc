@@ -9,6 +9,7 @@ using HarmonyLib;
 using KeyboardOSC.XScripts;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using XSOverlay;
 
@@ -23,7 +24,9 @@ namespace KeyboardOSC
         public static bool IsChatModeActive;
         public Overlay_Manager overlayManager;
         public KeyboardInputHandler inputHandler;
-        public GameObject chatButtonObj;
+        
+        public GameObject toggleBarObj;
+
         public GameObject oscBarWindowObj;
         public GameObject oscBarCanvas;
 
@@ -66,30 +69,34 @@ namespace KeyboardOSC
             overlayManager = Overlay_Manager.Instance;
             inputHandler = overlayManager.Keyboard.GetComponent<KeyboardInputHandler>();
 
-            SetupAdditionalGameObjects();
+            SetupToggleButton();
+            SetupBar();
 
             ServerBridge.Instance.CommandMap["Keyboard"] = delegate { Overlay_Manager.Instance.EnableKeyboard(); };
         }
 
-        private void SetupAdditionalGameObjects()
+        private void SetupToggleButton()
         {
-            // Copy existing lock keyboard to create new button
+            var lockButtonObj = overlayManager.Keyboard.GetComponentInChildren<LockKeyboardButton>(true).gameObject;
+            toggleBarObj = Instantiate(lockButtonObj, lockButtonObj.transform.parent);
+            toggleBarObj.DestroyComponent<LockKeyboardButton>();
+            toggleBarObj.AddComponent<ToggleChatButton>();
+            toggleBarObj.transform.Find("Image").GetComponent<Image>().sprite = "chat".GetSprite();
+            toggleBarObj.Rename("KeyboardOSC Toggle");
+        }
+
+        private void SetupBar()
+        {
             var keyboard = overlayManager.Keyboard;
             var keyboardWindow = overlayManager.Keyboard_Overlay;
             var keyboardWindowObj = overlayManager.Keyboard_Overlay.gameObject;
-
-            var lockKeyboard = keyboard.GetComponentInChildren<LockKeyboardButton>(true).gameObject;
-            chatButtonObj = Instantiate(lockKeyboard, lockKeyboard.transform.parent);
-            chatButtonObj.DestroyComponent<LockKeyboardButton>();
-            chatButtonObj.AddComponent<ToggleChatButton>();
-            chatButtonObj.transform.Find("Image").GetComponent<Image>().sprite = "chat".GetSprite();
-            chatButtonObj.Rename("KeyboardOSC Toggle");
+            keyboardWindowObj.SetActive(false);
 
             // Create typing bar
             var oscBarRoot = new GameObject("KeyboardOSC Root");
             oscBarRoot.SetActive(false);
-            keyboardWindowObj.SetActive(false);
             oscBarRoot.AddComponent<OverlayTopLevelObject>();
+
 
             oscBarWindowObj = Instantiate(keyboardWindow.gameObject, oscBarRoot.transform);
             oscBarWindowObj.Rename("KeyboardOSC Window");
@@ -103,15 +110,16 @@ namespace KeyboardOSC
             oscBarWindow.overlayKey = "chatbar";
             oscBarWindow.isMoveable = false;
 
+
             oscBarCanvas = Instantiate(keyboard.transform.Find("Keyboard Canvas | Manager"),
                 oscBarRoot.transform, true).gameObject;
-            var kbBackground = oscBarCanvas.transform.Find("Keyboard Background").gameObject;
             oscBarCanvas.Rename("KeyboardOSC Bar Canvas");
             oscBarCanvas.GetComponent<Canvas>().referencePixelsPerUnit = 420;
             Destroy(oscBarCanvas.transform.Find("KeyboardToolbar").gameObject);
             Destroy(oscBarCanvas.transform.Find("Keyboard Background/KeyboardLayout").gameObject);
+            var kbBackground = oscBarCanvas.transform.Find("Keyboard Background").gameObject;
 
-            foreach (Transform child in oscBarCanvas.transform.Find("Keyboard Background/KeyboardSettings/Options"))
+            foreach (Transform child in kbBackground.transform.Find("KeyboardSettings/Options"))
             {
                 if (child.transform.GetSiblingIndex() > 0)
                 {
@@ -130,8 +138,8 @@ namespace KeyboardOSC
             var rescaleToCanvas = oscBarCameraObj.AddComponent<RescaleCamToCanvas>();
             rescaleToCanvas.canvas = oscBarCanvas.GetComponent<RectTransform>();
             rescaleToCanvas.camera = oscBarCamera;
-            
-            
+
+
             oscBarWindow.renderTexHeightOverride = 60;
             oscBarWindow.renderTexWidthOverride = 730;
             oscBarWindow.widthInMeters = 0.55f;
@@ -165,16 +173,17 @@ namespace KeyboardOSC
                 .gameObject, kbBackground.transform);
             Destroy(oscBarCanvas.transform.Find("Keyboard Background/KeyboardSettings").gameObject);
             oscBarTextObj.Rename("KeyboardOSC Bar Text");
+            
             var oscbarText = oscBarTextObj.GetComponent<TextMeshProUGUI>();
             XSTools.SetTMPUIText(oscbarText, "type something silly");
+            
             oscbarText.fontSize = 250f;
             oscbarText.fontSizeMax = 250f;
             oscbarText.horizontalAlignment = HorizontalAlignmentOptions.Center;
             oscbarText.verticalAlignment = VerticalAlignmentOptions.Middle;
 
+            
             ChatModeManager.Setup(oscbarText);
-
-
             oscBarRoot.SetActive(true);
             keyboardWindowObj.SetActive(true);
             WindowMovementManager.MoveToEdgeOfWindowAndInheritRotation(oscBarWindow, keyboardWindow,
@@ -206,7 +215,7 @@ namespace KeyboardOSC
 
         private void SetToggleColor()
         {
-            var chatButton = chatButtonObj.GetComponent<Button>();
+            var chatButton = toggleBarObj.GetComponent<Button>();
             var buttonColors = chatButton.colors;
 
             buttonColors.normalColor = (IsChatModeActive
