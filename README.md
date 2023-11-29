@@ -9,7 +9,7 @@ A extension for XSOverlay to make text communication in VRChat easier.
 
 ## Auto Install
 
-Navigate to your XSOverlay folder, open a PowerShell window, and paste the following \
+Open a PowerShell window, navigate to your XSOverlay folder and paste the following \
 (If you're unsure open Steam and go to XSOverlay > Manage > Browse local files)
 
 ```pwsh
