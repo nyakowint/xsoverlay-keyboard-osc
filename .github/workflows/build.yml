@@ -11,6 +11,7 @@ on:
     paths-ignore:
       - '**.md'
       - '**.js'
+      - '**.ps1'
   workflow_dispatch:
 jobs:
   build:
