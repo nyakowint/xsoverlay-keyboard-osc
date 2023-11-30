@@ -8,6 +8,8 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <OutputPath>$(SolutionDir)\builds\$(Configuration)</OutputPath>
+        <IsPackable>false</IsPackable>
+        <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <DebugType>Full</DebugType>
@@ -18,19 +20,25 @@
         <Exec Command="move &quot;$(SolutionDir)builds\Debug\net472\$(ProjectName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\XSOverlay_Beta\BepInEx\plugins&quot;"/>
     </Target>
     <ItemGroup>
-        <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
-        <PackageReference Include="BepInEx.Core" Version="5.4.21" />
-        <PackageReference Include="BepInEx.PluginInfoProps" Version="2.1.0" />
+        <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all"/>
+        <PackageReference Include="BepInEx.Core" Version="5.4.21"/>
+        <PackageReference Include="BepInEx.PluginInfoProps" Version="2.1.0"/>
         <PackageReference Include="UnityEngine.Modules" Version="2019.4.34" IncludeAssets="compile"/>
     </ItemGroup>
-    
+
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all"/>
     </ItemGroup>
 
     <ItemGroup>
         <Reference Include="Assembly-CSharp">
             <HintPath>$(SolutionDir)refs\Assembly-CSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="Newtonsoft.Json">
+            <HintPath>$(SolutionDir)refs\Newtonsoft.Json.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Net.Http">
+            <HintPath>$(SolutionDir)refs\System.Net.Http.dll</HintPath>
         </Reference>
         <Reference Include="Unity.TextMeshPro">
             <HintPath>$(SolutionDir)refs\Unity.TextMeshPro.dll</HintPath>

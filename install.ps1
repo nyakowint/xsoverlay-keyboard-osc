@@ -10,7 +10,7 @@ Invoke-WebRequest -Uri $bepInExUrl -OutFile "./BepInEx.zip"
 
 Write-Host "Extracting into current directory..."
 Expand-Archive -Path "./BepInEx.zip" -DestinationPath "./" -Force
-Remove-Item -Path "./BepInEx.zip"
+Remove-Item -Path "./BepInEx.zip" -Force
 
 New-Item -ItemType Directory -Path "./BepInEx/config" -Force
 New-Item -ItemType Directory -Path "./BepInEx/plugins" -Force

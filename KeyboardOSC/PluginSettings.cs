@@ -10,5 +10,6 @@ public class PluginSettings
     internal static void Init()
     {
         ConfigFile.Bind(sectionId, "HasSeenHint", false, "Has user seen osc hint");
+        ConfigFile.Bind(sectionId, "CheckForUpdates", false, "Notify user of updates on init?");
     }
 }

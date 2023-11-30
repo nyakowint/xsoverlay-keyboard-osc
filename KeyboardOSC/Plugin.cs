@@ -1,30 +1,32 @@
 ﻿using System;
-using System.IO;
 using System.Reflection;
-using System.Threading;
+using System.Threading.Tasks;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using KeyboardOSC;
 using KeyboardOSC.XScripts;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using XSOverlay;
 
+[assembly: AssemblyVersion(Plugin.AssemblyVersion)]
+
 namespace KeyboardOSC
 {
-    [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", "1.1.0.0")]
+    [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", AssemblyVersion)]
     public class Plugin : BaseUnityPlugin
     {
+        public const string AssemblyVersion = "1.1.1.0";
         public static Plugin Instance;
         public static ManualLogSource PluginLogger;
         private static bool _isDebugConfig;
         public static bool IsChatModeActive;
         public Overlay_Manager overlayManager;
         public KeyboardInputHandler inputHandler;
-        
+
         public GameObject toggleBarObj;
 
         public GameObject oscBarWindowObj;
@@ -54,7 +56,7 @@ namespace KeyboardOSC
 
             ReleaseStickyKeys = AccessTools.Method(typeof(KeyboardInputHandler), "ReleaseStickyKeys");
             Patches.PatchAll();
-
+            
             ServerBridge.Instance.CommandMap["Keyboard"] = delegate
             {
                 InitializeKeyboard();
@@ -73,6 +75,8 @@ namespace KeyboardOSC
             SetupBar();
 
             ServerBridge.Instance.CommandMap["Keyboard"] = delegate { Overlay_Manager.Instance.EnableKeyboard(); };
+            Config.TryGetEntry<bool>(PluginSettings.sectionId, "CheckForUpdates", out var checkUpdates);
+            if (checkUpdates.Value) Task.Run(Tools.CheckVersion);
         }
 
         private void SetupToggleButton()
@@ -156,6 +160,10 @@ namespace KeyboardOSC
             obwTransform.position = keyboardPos.TransformDirection(0, 0.01f, 0);
             obwTransform.rotation = new Quaternion(0, 0, 0, 0);
 
+            var kbOpacity = (Slider) AccessTools.Field(typeof(XSettingsManager), "KeyboardOpacity")
+                .GetValue(XSettingsManager.Instance);
+            kbOpacity.onValueChanged.AddListener(value => { oscBarWindow.opacity = value; });
+
             XSOEventSystem.OnGrabbedOrDroppedOverlay += (targetOverlay, _, grabbed) =>
             {
                 if (targetOverlay.overlayKey != "xso.overlay.keyboard" || grabbed) return;
@@ -173,16 +181,16 @@ namespace KeyboardOSC
                 .gameObject, kbBackground.transform);
             Destroy(oscBarCanvas.transform.Find("Keyboard Background/KeyboardSettings").gameObject);
             oscBarTextObj.Rename("KeyboardOSC Bar Text");
-            
+
             var oscbarText = oscBarTextObj.GetComponent<TextMeshProUGUI>();
             XSTools.SetTMPUIText(oscbarText, "type something silly!");
-            
+
             oscbarText.fontSize = 250f;
             oscbarText.fontSizeMax = 250f;
             oscbarText.horizontalAlignment = HorizontalAlignmentOptions.Center;
             oscbarText.verticalAlignment = VerticalAlignmentOptions.Middle;
 
-            
+
             ChatMode.Setup(oscbarText);
             oscBarRoot.SetActive(true);
             keyboardWindowObj.SetActive(true);
@@ -192,6 +200,7 @@ namespace KeyboardOSC
 
         public void RepositionBar(Unity_Overlay barOverlay, Unity_Overlay keebOverlay)
         {
+            barOverlay.opacity = keebOverlay.opacity;
             WindowMovementManager.ScaleOverlayToScale(keebOverlay.widthInMeters - 0.1f, 0.1f, barOverlay);
             WindowMovementManager.MoveToEdgeOfWindowAndInheritRotation(barOverlay, keebOverlay,
                 Vector3.Distance(keebOverlay.transform.position, barOverlay.transform.position) * 0.05f, 0f, 1);

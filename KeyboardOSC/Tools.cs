@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using BepInEx;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using WindowsInput.Native;
 using XSOverlay;
@@ -119,6 +124,30 @@ public static class Tools
         texture.wrapMode = TextureWrapMode.Clamp;
 
         return texture;
+    }
+
+    private const string ReleaseUrl = "https://api.github.com/repos/nyakowint/xsoverlay-keyboard-osc/releases/latest";
+
+    public static async Task CheckVersion()
+    {
+        using var client = new HttpClient();
+        client.DefaultRequestHeaders.Add("User-Agent", "xso-kbosc");
+
+        var response = await client.GetStringAsync(ReleaseUrl);
+        var json = JObject.Parse(response);
+        if (json["assets"] == null) throw new Exception("No assets found in release.");
+        var latestReleaseAssetUrl = json["assets"].First(b => b["name"].Value<string>() == "KeyboardOSC.dll");
+        if (latestReleaseAssetUrl == null) throw new Exception("Could not find the mod in release.");
+
+        var release =
+            Assembly.Load(
+                await client.GetByteArrayAsync(latestReleaseAssetUrl["browser_download_url"]!.Value<string>()));
+        
+        if (release.GetName().Version > Version.Parse(Plugin.AssemblyVersion))
+        {
+            ThreadingHelper.Instance.StartSyncInvoke(() => SendBread("Plugin Update Available",
+                "A new version of KeyboardOSC is available. It's recommended to install it :D"));
+        }
     }
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
