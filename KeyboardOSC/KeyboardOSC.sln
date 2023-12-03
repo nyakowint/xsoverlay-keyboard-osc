@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KeyboardOSC", "KeyboardOSC.csproj", "{72AD72A8-83B0-4A8B-B359-38C07643272E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{72AD72A8-83B0-4A8B-B359-38C07643272E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72AD72A8-83B0-4A8B-B359-38C07643272E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72AD72A8-83B0-4A8B-B359-38C07643272E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72AD72A8-83B0-4A8B-B359-38C07643272E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A5466BE1-0020-4D4B-9735-7FA8E10143B1}
+	EndGlobalSection
+EndGlobal

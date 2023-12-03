@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using BepInEx;
 using Newtonsoft.Json.Linq;
@@ -34,7 +33,7 @@ public static class Tools
         }
     }
 
-    public static void SendBread(string title, string content)
+    public static void SendBread(string title, string content = "")
     {
         var notif = new XSOMessage()
         {
@@ -49,12 +48,6 @@ public static class Tools
         NotificationHandler.Instance.PrepareToast(notif);
     }
 
-
-    public static string ConvertVirtualKeyToUnicode(VirtualKeyCode keyCode, uint scanCode, bool shift, bool altGr)
-    {
-        return GetCharsFromKeys(keyCode, scanCode, shift, altGr);
-    }
-
     private static int CalculateHeight(string content)
     {
         return content.Length switch
@@ -65,6 +58,8 @@ public static class Tools
             _ => 250
         };
     }
+
+    #region Region: Unity Extensions
 
     public static void DestroyComponent<T>(this GameObject go) where T : Component
     {
@@ -89,6 +84,78 @@ public static class Tools
         {
             Plugin.PluginLogger.LogError($"Could not Rename {nameof(go)} as target Object was null");
         }
+    }
+
+    #endregion
+
+    private const string ReleaseUrl = "https://api.github.com/repos/nyakowint/xsoverlay-keyboard-osc/releases/latest";
+
+    public static async Task CheckVersion()
+    {
+        var logger = Plugin.PluginLogger;
+        using var client = new HttpClient();
+        client.DefaultRequestHeaders.Add("User-Agent", "xso-kbosc");
+
+        logger.LogInfo("Checking for plugin updates...");
+        var response = await client.GetStringAsync(ReleaseUrl);
+        var json = JObject.Parse(response);
+        if (json["assets"] == null)
+        {
+            logger.LogError("No assets found in release.");
+            return;
+        }
+
+        var latestReleaseAssetUrl = json["assets"].First(b => b["name"].Value<string>() == "KeyboardOSC.dll");
+        var releaseDll = await client.GetByteArrayAsync(latestReleaseAssetUrl["browser_download_url"]!.Value<string>());
+        var release = Assembly.Load(releaseDll);
+
+        var releaseVersion = release.GetName().Version;
+        if (releaseVersion > Version.Parse(Plugin.AssemblyVersion))
+        {
+            logger.LogInfo($"New version available! {releaseVersion}");
+            ThreadingHelper.Instance.StartSyncInvoke(() => SendBread("Plugin Update Available",
+                $"Version {releaseVersion} of KeyboardOSC is available. You currently have version {Plugin.AssemblyVersion}, it's recommended to install it :D"));
+        }
+        else
+        {
+            logger.LogInfo("No updates available.");
+        }
+
+        client.Dispose();
+    }
+
+    public static bool DownloadModifiedUi()
+    {
+        var logger = Plugin.PluginLogger;
+        using var client = new WebClient();
+        try
+        {
+            logger.LogInfo("Downloading modified HTML...");
+            var htmlContent =
+                client.DownloadString(
+                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/SettingsKO.html");
+            logger.LogInfo("Downloading modified JS...");
+            var jsContent =
+                client.DownloadString(
+                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/settingsKO.js");
+
+            var htmlPath = $"{Application.streamingAssetsPath}/Plugins/UserInterface/SettingsKO.html";
+            var jsPath = $"{Application.streamingAssetsPath}/Plugins/UserInterface/Shared/js/settingsKO.js";
+
+            logger.LogInfo($"Writing settings HTML to: {htmlPath}");
+            logger.LogInfo($"Writing settings JS to: {jsPath}");
+            File.WriteAllText(htmlPath, htmlContent);
+            File.WriteAllText(jsPath, jsContent);
+        }
+        catch (Exception exception)
+        {
+            Plugin.PluginLogger.LogError($"Exception downloading modified ui: {exception}");
+            client.Dispose();
+            return false;
+        }
+
+        client.Dispose();
+        return true;
     }
 
     // didnt think id be reusing this old code lol
@@ -126,28 +193,11 @@ public static class Tools
         return texture;
     }
 
-    private const string ReleaseUrl = "https://api.github.com/repos/nyakowint/xsoverlay-keyboard-osc/releases/latest";
+    #region Region: System/Keys Methods
 
-    public static async Task CheckVersion()
+    public static string ConvertVirtualKeyToUnicode(VirtualKeyCode keyCode, uint scanCode, bool shift, bool altGr)
     {
-        using var client = new HttpClient();
-        client.DefaultRequestHeaders.Add("User-Agent", "xso-kbosc");
-
-        var response = await client.GetStringAsync(ReleaseUrl);
-        var json = JObject.Parse(response);
-        if (json["assets"] == null) throw new Exception("No assets found in release.");
-        var latestReleaseAssetUrl = json["assets"].First(b => b["name"].Value<string>() == "KeyboardOSC.dll");
-        if (latestReleaseAssetUrl == null) throw new Exception("Could not find the mod in release.");
-
-        var release =
-            Assembly.Load(
-                await client.GetByteArrayAsync(latestReleaseAssetUrl["browser_download_url"]!.Value<string>()));
-        
-        if (release.GetName().Version > Version.Parse(Plugin.AssemblyVersion))
-        {
-            ThreadingHelper.Instance.StartSyncInvoke(() => SendBread("Plugin Update Available",
-                "A new version of KeyboardOSC is available. It's recommended to install it :D"));
-        }
+        return GetCharsFromKeys(keyCode, scanCode, shift, altGr);
     }
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
@@ -191,4 +241,6 @@ public static class Tools
     public static int k_SUCCESS;
 #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
     private static IntPtr _currentHkl;
+
+    #endregion
 }

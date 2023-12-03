@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Threading.Tasks;
 using BepInEx;
-using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using KeyboardOSC;
@@ -19,16 +18,18 @@ namespace KeyboardOSC
     [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", AssemblyVersion)]
     public class Plugin : BaseUnityPlugin
     {
-        public const string AssemblyVersion = "1.1.1.0";
+        public const string AssemblyVersion = "1.2.0.0";
         public static Plugin Instance;
         public static ManualLogSource PluginLogger;
-        private static bool _isDebugConfig;
-        public static bool IsChatModeActive;
+
+        public static bool isDebugConfig;
+        public static bool ChatModeActive;
+        public static bool ModifiedUiSuccess;
+
         public Overlay_Manager overlayManager;
         public KeyboardInputHandler inputHandler;
 
         public GameObject toggleBarObj;
-
         public GameObject oscBarWindowObj;
         public GameObject oscBarCanvas;
 
@@ -37,13 +38,17 @@ namespace KeyboardOSC
         private void Awake()
         {
 #if DEBUG
-            _isDebugConfig = true;
+            isDebugConfig = true;
 #endif
             PluginLogger = Logger;
             if (Instance != null) Destroy(this);
             PluginSettings.ConfigFile = Config;
             PluginSettings.Init();
-            if (!Environment.CommandLine.Contains("-batchmode") || _isDebugConfig) return;
+            
+            // Download modified settings code
+            ModifiedUiSuccess = Tools.DownloadModifiedUi();
+
+            if (!Environment.CommandLine.Contains("-batchmode") || isDebugConfig) return;
             Logger.LogWarning("XSOverlay runs in batchmode normally (headless, without a window).");
             Logger.LogWarning("To see extended logs launch XSOverlay directly.");
         }
@@ -56,7 +61,7 @@ namespace KeyboardOSC
 
             ReleaseStickyKeys = AccessTools.Method(typeof(KeyboardInputHandler), "ReleaseStickyKeys");
             Patches.PatchAll();
-            
+
             ServerBridge.Instance.CommandMap["Keyboard"] = delegate
             {
                 InitializeKeyboard();
@@ -75,7 +80,7 @@ namespace KeyboardOSC
             SetupBar();
 
             ServerBridge.Instance.CommandMap["Keyboard"] = delegate { Overlay_Manager.Instance.EnableKeyboard(); };
-            Config.TryGetEntry<bool>(PluginSettings.sectionId, "CheckForUpdates", out var checkUpdates);
+            var checkUpdates = PluginSettings.GetSetting<bool>("CheckForUpdates");
             if (checkUpdates.Value) Task.Run(Tools.CheckVersion);
         }
 
@@ -176,22 +181,30 @@ namespace KeyboardOSC
             camTrans.position = canvasTrans.position;
             camTrans.rotation = canvasTrans.rotation;
             //
-            var oscBarTextObj = Instantiate(keyboard.transform
-                .Find("Keyboard Canvas | Manager/Keyboard Background/KeyboardSettings/Options/Audio Toggle/Text (TMP)")
-                .gameObject, kbBackground.transform);
+            var oscBarTextObj = Instantiate(keyboard.transform.Find("Keyboard Canvas | Manager/Keyboard Background/KeyboardSettings/Options/Audio Toggle/Text (TMP)").gameObject, kbBackground.transform);
+            var barCharCounter = Instantiate(oscBarTextObj, kbBackground.transform);
             Destroy(oscBarCanvas.transform.Find("Keyboard Background/KeyboardSettings").gameObject);
             oscBarTextObj.Rename("KeyboardOSC Bar Text");
+            barCharCounter.Rename("Character Counter");
 
             var oscbarText = oscBarTextObj.GetComponent<TextMeshProUGUI>();
+            var charCounterText = barCharCounter.GetComponent<TextMeshProUGUI>();
             XSTools.SetTMPUIText(oscbarText, "type something silly!");
+            XSTools.SetTMPUIText(charCounterText, "0/144");
 
             oscbarText.fontSize = 250f;
             oscbarText.fontSizeMax = 250f;
             oscbarText.horizontalAlignment = HorizontalAlignmentOptions.Center;
             oscbarText.verticalAlignment = VerticalAlignmentOptions.Middle;
+            
+            charCounterText.fontSize = 100f;
+            charCounterText.fontSizeMax = 100f;
+            charCounterText.fontStyle = FontStyles.Bold;
+            charCounterText.horizontalAlignment = HorizontalAlignmentOptions.Right;
+            charCounterText.verticalAlignment = VerticalAlignmentOptions.Top;
 
 
-            ChatMode.Setup(oscbarText);
+            ChatMode.Setup(oscbarText, charCounterText);
             oscBarRoot.SetActive(true);
             keyboardWindowObj.SetActive(true);
             WindowMovementManager.MoveToEdgeOfWindowAndInheritRotation(oscBarWindow, keyboardWindow,
@@ -210,11 +223,11 @@ namespace KeyboardOSC
         {
             ReleaseStickyKeys.Invoke(inputHandler, null);
 
-            IsChatModeActive = !IsChatModeActive;
-            oscBarWindowObj.SetActive(IsChatModeActive);
+            ChatModeActive = !ChatModeActive;
+            oscBarWindowObj.SetActive(ChatModeActive);
 
             var barOverlay = oscBarWindowObj.GetComponent<Unity_Overlay>();
-            if (IsChatModeActive)
+            if (ChatModeActive)
             {
                 RepositionBar(barOverlay, overlayManager.Keyboard_Overlay);
             }
@@ -227,7 +240,7 @@ namespace KeyboardOSC
             var chatButton = toggleBarObj.GetComponent<Button>();
             var buttonColors = chatButton.colors;
 
-            buttonColors.normalColor = (IsChatModeActive
+            buttonColors.normalColor = (ChatModeActive
                 ? UIThemeHandler.Instance.T_HiTone
                 : UIThemeHandler.Instance.T_DarkTone);
             chatButton.colors = buttonColors;

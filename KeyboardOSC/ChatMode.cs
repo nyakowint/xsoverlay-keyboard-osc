@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Timers;
+using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using TMPro;
@@ -15,13 +16,14 @@ namespace KeyboardOSC;
 public static class ChatMode
 {
     private static bool _isSilentMsg;
-    private static bool _allowPartialSend;
+    private static bool _isFirstMsg;
     private static string _currentText = "";
     private static string _lastMsg = "";
-    private static DateTime _lastTypingTime;
     private static readonly ManualLogSource Logger = Plugin.PluginLogger;
     private static TextMeshProUGUI _oscBarText;
+    private static TextMeshProUGUI _charCounter;
     private static List<KeyboardKey> _currentlyDownStickyKeys = new();
+    private static Timer _eventsTimer = new(1300);
 
     public static void HandleKey(KeyboardKey.VirtualKeyEventData eventData)
     {
@@ -44,6 +46,8 @@ public static class ChatMode
     {
         var isCtrlHeld = _currentlyDownStickyKeys
             .Any(k => k.Key[0] is VirtualKeyCode.LCONTROL or VirtualKeyCode.RCONTROL);
+        var sendTyping = PluginSettings.GetSetting<bool>("TypingIndicator").Value;
+        var liveSendMode = PluginSettings.GetSetting<bool>("LiveSend").Value;
         switch (key)
         {
             // backspace/delete keys
@@ -58,10 +62,14 @@ public static class ChatMode
 #if DEBUG
                     Logger.LogInfo("bulk deleting chat text: " + _currentText);
 #endif
+                    if (sendTyping) SendTyping(_currentText.Length != 0);
+                    if (liveSendMode) _eventsTimer.Start();
                     return;
                 }
 
                 _currentText = _currentText.Remove(key is VirtualKeyCode.DELETE ? 0 : _currentText.Length - 1, 1);
+                if (sendTyping) SendTyping(_currentText.Length != 0);
+                if (liveSendMode) _eventsTimer.Start();
                 UpdateChatText(_currentText);
                 return;
             }
@@ -69,20 +77,22 @@ public static class ChatMode
             case VirtualKeyCode.TAB:
                 _isSilentMsg = !_isSilentMsg;
                 UpdateChatColor();
+                Logger.LogInfo($"Silent mode: {_isSilentMsg}");
                 return;
             // clear shortcut
             case VirtualKeyCode.ESCAPE:
-                _currentText = "";
-                UpdateChatText(_currentText);
-                Logger.LogInfo("INPUT CLEARED");
-                SendTyping(false);
+                ClearInput();
+                Logger.LogInfo("Input cleared");
                 return;
             case VirtualKeyCode.END:
-                SendMessage("/chatbox/input", string.Empty, true, false);
+                Tools.SendOsc("/chatbox/input", string.Empty, true, false);
+                Logger.LogInfo("Chatbox cleared");
                 return;
             case VirtualKeyCode.INSERT:
                 _currentText = _lastMsg;
                 UpdateChatText(_currentText);
+                _isFirstMsg = true;
+                Logger.LogInfo("Inserted last input");
                 return;
             // copy + paste
             case VirtualKeyCode.VK_C:
@@ -94,54 +104,91 @@ public static class ChatMode
                 _currentText += GUIUtility.systemCopyBuffer;
                 UpdateChatText(_currentText);
                 return;
-            // that silly "send as you're typing" quirk some other osc apps do
-            // no idea if this will break to the rate limit like my old method did, we'll see
-            case VirtualKeyCode.F6:
-                _allowPartialSend = !_allowPartialSend;
-                break;
+            // Send message (or clear for continuous)
+            case VirtualKeyCode.RETURN:
+                if (liveSendMode)
+                {
+                    Logger.LogInfo($"Sending message: {_currentText.ReplaceShortcodes()} [^-^]");
+                    _lastMsg = _currentText;
+                    SendMessage(true);
+                    ClearInput();
+                }
+                else
+                {
+                    Logger.LogInfo($"Sending message: {_currentText.ReplaceShortcodes()}");
+                    SendMessage();
+                    ClearInput();
+                }
+
+                return;
         }
 
-
-        if (key is VirtualKeyCode.RETURN)
+        // Normal character inputs
+        if (sendTyping) SendTyping(_currentText.Length != 0);
+        if (liveSendMode)
         {
-            if (_currentText.Length <= 0) return;
-            Logger.LogInfo("CHAT SENT: " + _currentText);
-            _lastMsg = _currentText;
-            SendMessage("/chatbox/input", _currentText, true, !_isSilentMsg);
-            UpdateChatText("");
-            _currentText = "";
-            _isSilentMsg = false;
-            Plugin.ReleaseStickyKeys.Invoke(Plugin.Instance.inputHandler, null);
-            SendTyping(false);
-            UpdateChatColor();
-            return;
+            _eventsTimer.Start();
+            if (_currentText.IsNullOrWhiteSpace())
+                _isFirstMsg = true;
         }
 
-
-        SendTyping(true);
         _currentText += character;
         UpdateChatText(_currentText);
     }
 
-    private static void SendMessage(string address, string msg, bool now, bool sound)
+    private static void TimerElapsed(object sender, ElapsedEventArgs e)
     {
-        Tools.SendOsc(address, msg, now, sound);
+        if (_isSilentMsg) return;
+        Logger.LogInfo("Timer elapsed, sending message");
+        if (_currentText.IsNullOrWhiteSpace())
+        {
+            Tools.SendOsc("/chatbox/input", string.Empty, true, false);
+            SendTyping(false);
+        }
+
+        var sendTyping = PluginSettings.GetSetting<bool>("TypingIndicator").Value;
+        SendMessage(true);
+        if (sendTyping) SendTyping(true);
+    }
+
+    private static void SendMessage(bool liveSend = false)
+    {
+        if (liveSend)
+        {
+            _eventsTimer.Stop();
+            Tools.SendOsc("/chatbox/input", _currentText.ReplaceShortcodes(), true, !_isSilentMsg || _isFirstMsg);
+            SendTyping(false);
+            _isFirstMsg = false;
+        }
+        else
+        {
+            Tools.SendOsc("/chatbox/input", _currentText.ReplaceShortcodes(), true, !_isSilentMsg);
+            SendTyping(false);
+            _lastMsg = _currentText;
+            ClearInput();
+        }
+    }
+
+    private static void ClearInput()
+    {
+        UpdateChatText(string.Empty);
+        _currentText = string.Empty;
+        _isSilentMsg = false;
+        UpdateChatColor();
+        Plugin.ReleaseStickyKeys.Invoke(Plugin.Instance.inputHandler, null);
     }
 
     private static void SendTyping(bool typing)
     {
-        if (typing && (DateTime.Now - _lastTypingTime).TotalSeconds <= 2 || _isSilentMsg) return;
-        _lastTypingTime = DateTime.Now;
+        if (typing && _isSilentMsg) return;
         Tools.SendOsc("/chatbox/typing", typing);
-        if (_allowPartialSend)
-        {
-            SendMessage("/chatbox/input", _currentText, true, false);
-        }
     }
 
-    public static void Setup(TextMeshProUGUI obText)
+    public static void Setup(TextMeshProUGUI barText, TextMeshProUGUI charCounter)
     {
-        _oscBarText = obText;
+        _oscBarText = barText;
+        _charCounter = charCounter;
+        _eventsTimer.Elapsed += TimerElapsed;
         var stickyKeysField = AccessTools.Field(typeof(KeyboardInputHandler), "CurrentlyDownStickyKeys");
         _currentlyDownStickyKeys = (List<KeyboardKey>) stickyKeysField.GetValue(Plugin.Instance.inputHandler);
     }
@@ -150,15 +197,48 @@ public static class ChatMode
     {
         _oscBarText.color =
             _isSilentMsg ? UIThemeHandler.Instance.T_WarningTone : UIThemeHandler.Instance.T_ConstrastingTone;
+        _charCounter.color = _currentText.Length switch
+        {
+            >= 120 => UIThemeHandler.Instance.T_ErrTone,
+            >= 85 => UIThemeHandler.Instance.T_WarningTone,
+            _ => UIThemeHandler.Instance.T_ConstrastingTone
+        };
     }
 
     private static void UpdateChatText(string text)
     {
-        if (text.Length > 250)
+        if (text.Length > 144)
         {
-            text = text.Substring(0, 250);
+            text = text.Substring(0, 144);
         }
 
+        XSTools.SetTMPUIText(_charCounter, $"{text.Length}/144");
+        UpdateChatColor();
+
         XSTools.SetTMPUIText(_oscBarText, text);
+    }
+
+    private static string ReplaceShortcodes(this string input)
+    {
+        var shortcodes = new Dictionary<string, string>
+        {
+            {"//shrug", "¯\\_(ツ)_/¯"},
+            {"//happy", "(¬‿¬)"},
+            {"//table", "┬─┬"},
+            {"//music", "🎵"},
+            {"//cookie", "🍪"},
+            {"//star", "⭐"},
+            {"//hrt", "💗"},
+            {"//2hrt", "💕"},
+            {"//skull", "💀"},
+            {"//skull2", "☠"},
+        };
+
+        foreach (var shortcode in shortcodes)
+        {
+            input = input.Replace(shortcode.Key, shortcode.Value);
+        }
+
+        return input;
     }
 }
