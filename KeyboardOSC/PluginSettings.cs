@@ -13,8 +13,8 @@ public class PluginSettings
     {
         ConfigFile.Bind(sectionId, "HasSeenHint", false, "Has user seen osc hint");
         ConfigFile.Bind(sectionId, "CheckForUpdates", false, "Notify user of updates on init?");
-        ConfigFile.Bind(sectionId, "LiveSend", false, "Notify user of updates on init?");
-        ConfigFile.Bind(sectionId, "TypingIndicator", true, "Notify user of updates on init?");
+        ConfigFile.Bind(sectionId, "LiveSend", false, "Send messages as you're typing them");
+        ConfigFile.Bind(sectionId, "TypingIndicator", true, "Whether to send typing indicator");
     }
 
     public static ConfigEntry<T> GetSetting<T>(string settingName)
