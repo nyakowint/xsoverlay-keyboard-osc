@@ -1,14 +1,16 @@
 # XSOverlay Keyboard OSC
 
-A extension for XSOverlay to make text communication in VRChat easier.
-
-
 > [!NOTE]
 > This is a third-party modification to [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/). Use at your
 > own discretion\
 > Last tested with build 649. It should work on any recent version.
 
-## Auto Install
+- Installation: [Automatic](#how-to-install) or [Manual](#manual-installation)
+- [Usage instructions](#how-to-use)  
+- [Preview images](#preview)
+- [Troubleshooting](#troubleshooting)
+
+## How to install
 
 Open a PowerShell window, navigate to your XSOverlay folder and paste the following \
 (If you're unsure open Steam and go to XSOverlay > Manage > Browse local files)
@@ -17,9 +19,16 @@ Open a PowerShell window, navigate to your XSOverlay folder and paste the follow
 Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/install.ps1" | Invoke-Expression
 ```
 
-Open XSOverlay, and hit that shiny new button on the right side of the keyboard!
+If you're having trouble, try [manually installing](#manual-installation) with the instructions below.
 
-If you're having trouble, try manually installing with the instructions below.
+## How to use
+1. Enable OSC. For VRChat you can find this in the Action Menu (Options > OSC > Enabled)
+2. Open the XSOverlay keyboard
+3. Press the message icon on the right hand side of the keyboard, under the lock button
+4. congration you done it - Check out the [shortcut keys](#shortcut-keys)!
+
+Optionally open XSOverlay Settings (Settings > KeyboardOSC) and change them to your liking \ 
+(this may break with an update, you can go back with the tab under bindings) 
 
 ## Manual Installation
 
@@ -31,18 +40,19 @@ If you're having trouble, try manually installing with the instructions below.
     - **Make sure you have done the second part.** if you dont then you will have a quite useless plugin :L
     - or set it yourself: `HideManagerGameObject = true`
 4. Start XSOverlay
-5. If you did everything right you should have a message icon on the keyboard toolbar (right). \
-   Click it. A bar should pop up above the keyboard. If not, move the
-   keyboard around and it should pop up.
-6. congration you done it
-    - You may also want to disable XSO analytics while using the plugin, but that's up to you, i'm not the one getting
-      error logs XD
 
 ### Removing the plugin
 
-- Delete `BepInEx`, `doorstop_config.ini`, `winhttp.dll` and other non overlay files from your XSOverlay folder
+- Follow the install steps in reverse order. Delete `BepInEx`, `doorstop_config.ini`, `winhttp.dll` and other non overlay files from your XSOverlay folder.
 
-# Features/Usage
+## Preview
+|||
+| ----------------------------------- | ----------------------------------- |
+| ![Icon preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/d43accef-d457-4d00-8b1f-3754e1edaa74) | ![osc bar preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/61d71541-1cda-4222-bdbf-8f96fa602e0b) |
+| ![settings preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/53179e68-1f21-46ec-89a7-9f3d649bbc14) | ![version checker preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/6aadbcc6-263c-443d-8ffb-fce062c2cbc9)  |
+
+
+# Shortcut Keys
 
 Send messages to the chatbox just like in OVR Toolkit!
 
@@ -53,7 +63,6 @@ Use the following shortcut keys:
 | <kbd>END</kbd> | Clear last sent message (equivalent to pressing "Clear Chatbox" in radial menu)
 | <kbd>TAB</kbd> | Toggle silent msg (orange text, disables typing indicator and chatbox noise)
 | <kbd>INSERT</kbd> | Replace current text with your last message
-| <kbd>F6</kbd> | Send partial messages as you're typing (experimental)
 | &nbsp; |
 | <kbd>Backspace</kbd> or <kbd>Delete</kbd> | Delete last character from right or left respectively
 | <kbd>CTRL</kbd> + <kbd>C</kbd> | Copy current text to clipboard
@@ -64,12 +73,13 @@ Use the following shortcut keys:
 I cannot guarantee full functionality with the CVR chatbox mod, as this is built with VRChat's OSC routes in mind. They
 were identical last I checked.
 
-## Known Issues
+## Troubleshooting
 
-- The bar will be positioned significantly higher than intended until you move it for the first time. I consider this a
-  non-issue
+The bar may be positioned significantly higher than intended until you move it for the first time. I consider this a non-issue.
 
-If you find any, create an issue so i can remember to try and fix it when i feel like it
+If you can't seem to get OSC to work, try one of these:
+- Change the OSC port used by XSOverlay, instructions on [their docs](https://xiexe.github.io/XSOverlayDocumentation/#/OSCAPI) (it does not use OSCQuery as of writing, so this is probably your issue)
+- Reset your OSC config? 
 
 If you still need help you can find me in my dev server [discord](https://discord.gg/BrUacrw4cy)
 
@@ -77,7 +87,7 @@ If you still need help you can find me in my dev server [discord](https://discor
 
 Check the .csproj or actions workflow
 
-but if you wanna build this just drop the dlls from `XSOverlay_Data/Managed` into `refs`, restore and build w/ Release
+but if you wanna build this just drop the necessary dlls from `XSOverlay_Data/Managed` into `refs`, restore and build w/ Release
 config. dll will be in `builds` folder
 
 ### Motivation

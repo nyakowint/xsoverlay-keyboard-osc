@@ -11,20 +11,21 @@ namespace KeyboardOSC;
 public static class Patches
 {
     private static Harmony Harmony;
+    private static bool HasSettingsBeenOpenedOnce = false;
 
     public static void PatchAll()
     {
         Harmony = new Harmony("nwnt.keyboardosc");
-        // patch key presses
+
+        #region Patch Key Presses
+
         var sendKeyMethod = AccessTools.Method(typeof(KeyboardInputHandler), "SendKey");
         var sendKeyPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(KeyboardPatch)));
         Harmony.Patch(sendKeyMethod, sendKeyPatch);
 
-        // scale bar with keyboard?
-        var scaleMethod =
-            AccessTools.Method(typeof(WindowMovementManager), nameof(WindowMovementManager.DoScaleWindowFixed));
-        var scalePatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(ScalePatch)));
-        Harmony.Patch(scaleMethod, null, scalePatch);
+        #endregion
+
+        #region Stop inputs being sent to overlays
 
         // stop inputs being sent to overlays
         var keyPress = AccessTools.Method(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyPress),
@@ -34,20 +35,48 @@ public static class Patches
         var keyUp = AccessTools.Method(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyUp),
             new[] {typeof(VirtualKeyCode)});
         var blockInputPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(BlockInput)));
+
         Harmony.Patch(keyPress, prefix: blockInputPatch);
         Harmony.Patch(keyDown, prefix: blockInputPatch);
         Harmony.Patch(keyUp, prefix: blockInputPatch);
+
+        #endregion
+
+        // Scale bar with keyboard
+        var scaleMethod =
+            AccessTools.Method(typeof(WindowMovementManager), nameof(WindowMovementManager.DoScaleWindowFixed));
+        var scalePatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(ScalePatch)));
+        Harmony.Patch(scaleMethod, null, scalePatch);
 
         // Disable analytics by default (Xiexe loves seeing my plugin errors im sure XD)
         // can be turned back on after launching if you want to send him stuff for some reason
         var initAnalytics = AccessTools.Method(typeof(AnalyticsManager), "Initialize");
         var analyticsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(AnalyticsPatch)));
         Harmony.Patch(initAnalytics, postfix: analyticsPatch);
+
+
+        #region Settings UI Related Patches
+
+        var toggleAppSettings =
+            AccessTools.Method(typeof(Overlay_Manager), nameof(Overlay_Manager.ToggleEditMode));
+        var settingsOverlayPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(SettingsOverlayPatch)));
+
+        var setSettings = AccessTools.Method(typeof(XSettingsManager), nameof(XSettingsManager.SetSetting));
+        var setSettingsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(SetSettingPatch)));
+
+        var reqSettings = AccessTools.Method(typeof(ServerBridge), "OnRequestCurrentSettings");
+        var reqSettingsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(RequestSettingsPatch)));
+
+        Harmony.Patch(toggleAppSettings, postfix: settingsOverlayPatch);
+        Harmony.Patch(setSettings, setSettingsPatch);
+        Harmony.Patch(reqSettings, reqSettingsPatch);
+
+        #endregion
     }
 
     public static bool KeyboardPatch(KeyboardKey.VirtualKeyEventData keyEventData)
     {
-        if (Plugin.IsChatModeActive) ChatMode.HandleKey(keyEventData);
+        if (Plugin.ChatModeActive) ChatMode.HandleKey(keyEventData);
         return true;
     }
 
@@ -55,18 +84,68 @@ public static class Patches
     {
         XSettingsManager.Instance.Settings.SendAnalytics = false;
     }
-    
+
     public static void ScalePatch(float dist, Unity_Overlay activeOverlay, float StartingWidth)
     {
-        if (!Plugin.IsChatModeActive || activeOverlay.overlayKey != "xso.overlay.keyboard") return;
+        if (!Plugin.ChatModeActive || activeOverlay.overlayKey != "xso.overlay.keyboard") return;
         var chatBar = Plugin.Instance.oscBarWindowObj.GetComponent<Unity_Overlay>();
         chatBar.opacity = activeOverlay.opacity;
         Plugin.Instance.RepositionBar(chatBar, activeOverlay);
     }
 
+    public static void SettingsOverlayPatch()
+    {
+        if (!Plugin.ModifiedUiSuccess || HasSettingsBeenOpenedOnce) return;
+        var loadString =
+            $"http://localhost:{ExternalMessageHandler.Instance.Config.WebSocketPort + 1}/ui/SettingsKO.html";
+        Overlay_Manager.Instance.GlobalSettingsMenuOverlay.OverlayWebView._webView.WebView.LoadUrl(loadString);
+        HasSettingsBeenOpenedOnce = true;
+    }
+
+    public static void RequestSettingsPatch(string sender, string data)
+    {
+        // create new UiSettings instance
+        var settings = new UiSettings
+        {
+            KBCheckForUpdates = PluginSettings.GetSetting<bool>("CheckForUpdates").Value,
+            KBLiveSend = PluginSettings.GetSetting<bool>("LiveSend").Value,
+            KBTypingIndicator = PluginSettings.GetSetting<bool>("TypingIndicator").Value
+        };
+        var data2 = JsonUtility.ToJson(settings, true);
+        ServerBridge.Instance.SendMessage("UpdateSettings", data2, null, sender);
+    }
+
+    public static bool SetSettingPatch(string name, string value, string value1, bool sendAnalytics = false)
+    {
+        switch (name)
+        {
+            case "GoToOgSettings":
+                var loadString =
+                    $"http://localhost:{ExternalMessageHandler.Instance.Config.WebSocketPort + 1}/ui/Settings.html";
+                Overlay_Manager.Instance.GlobalSettingsMenuOverlay.OverlayWebView._webView.WebView.LoadUrl(loadString);
+                Overlay_Manager.Instance.ToggleApplicationSettings();
+                break;
+            case "KBCheckForUpdates":
+                PluginSettings.SetSetting<bool>("CheckForUpdates", value);
+                break;
+            case "KBLiveSend":
+                PluginSettings.SetSetting<bool>("LiveSend", value);
+                break;
+            case "KBTypingIndicator":
+                PluginSettings.SetSetting<bool>("TypingIndicator", value);
+                break;
+            case "KBOpenRepo":
+                Application.OpenURL("https://github.com/nyakowint/xsoverlay-keyboard-osc");
+                Tools.SendBread("KeyboardOSC Github link opened in browser!");
+                break;
+        }
+
+        return true;
+    }
+
     public static bool BlockInput(VirtualKeyCode keyCode)
     {
-        if (!Plugin.IsChatModeActive) return true;
+        if (!Plugin.ChatModeActive) return true;
 
         // small caveat with the way i'm doing this:
         // modifier keys still get passed to windows so that i don't have to reimplement xso's logic for them
