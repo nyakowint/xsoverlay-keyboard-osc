@@ -1,4 +1,5 @@
 ﻿using BepInEx.Configuration;
+using XSOverlay;
 
 // ReSharper disable InconsistentNaming
 
@@ -32,6 +33,7 @@ public class PluginSettings
 
 public class UiSettings
 {
+    public string KBVersion = Plugin.AssemblyVersion;
     public bool KBCheckForUpdates = false;
     public bool KBLiveSend = false;
     public bool KBTypingIndicator = true;

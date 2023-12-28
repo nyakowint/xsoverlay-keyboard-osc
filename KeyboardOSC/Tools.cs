@@ -120,13 +120,13 @@ public static class Tools
         {
             logger.LogInfo("No updates available.");
         }
-
-        client.Dispose();
+        
     }
 
     public static bool DownloadModifiedUi()
     {
         var logger = Plugin.PluginLogger;
+        if (Plugin.IsDebugConfig) return true;
         using var client = new WebClient();
         try
         {
@@ -150,11 +150,9 @@ public static class Tools
         catch (Exception exception)
         {
             Plugin.PluginLogger.LogError($"Exception downloading modified ui: {exception}");
-            client.Dispose();
             return false;
         }
-
-        client.Dispose();
+        
         return true;
     }
 

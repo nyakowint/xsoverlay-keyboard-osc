@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using HarmonyLib;
 using UnityEngine;
 using WindowsInput;
@@ -11,7 +12,8 @@ namespace KeyboardOSC;
 public static class Patches
 {
     private static Harmony Harmony;
-    private static bool HasSettingsBeenOpenedOnce = false;
+    private static WindowAttachementManager.DeviceToAttachTo kbAttachedTo;
+    private static bool HasSettingsBeenOpenedOnce;
 
     public static void PatchAll()
     {
@@ -29,11 +31,11 @@ public static class Patches
 
         // stop inputs being sent to overlays
         var keyPress = AccessTools.Method(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyPress),
-            new[] {typeof(VirtualKeyCode)});
+            new[] { typeof(VirtualKeyCode) });
         var keyDown = AccessTools.Method(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyDown),
-            new[] {typeof(VirtualKeyCode)});
+            new[] { typeof(VirtualKeyCode) });
         var keyUp = AccessTools.Method(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyUp),
-            new[] {typeof(VirtualKeyCode)});
+            new[] { typeof(VirtualKeyCode) });
         var blockInputPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(BlockInput)));
 
         Harmony.Patch(keyPress, prefix: blockInputPatch);
@@ -42,11 +44,17 @@ public static class Patches
 
         #endregion
 
+
         // Scale bar with keyboard
         var scaleMethod =
             AccessTools.Method(typeof(WindowMovementManager), nameof(WindowMovementManager.DoScaleWindowFixed));
         var scalePatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(ScalePatch)));
         Harmony.Patch(scaleMethod, null, scalePatch);
+
+        // gosh i love enumerators (fix for a problem i created lol)
+        var attachMethod = AccessTools.Method(typeof(WindowMovementManager), "DelayedTransformSetToTarget");
+        var attachPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(AttachedMovePatch)));
+        Harmony.Patch(attachMethod, null, attachPatch);
 
         // Disable analytics by default (Xiexe loves seeing my plugin errors im sure XD)
         // can be turned back on after launching if you want to send him stuff for some reason
@@ -85,6 +93,14 @@ public static class Patches
         XSettingsManager.Instance.Settings.SendAnalytics = false;
     }
 
+    public static void AttachedMovePatch(Unity_Overlay overlay, Transform target, Overlay_TrackDevice deviceTracker,
+        Unity_Overlay.OverlayTrackedDevice device, Vector3 pos, Quaternion rot, float originalScale,
+        float originalOpacity)
+    {
+        var chatBar = Plugin.Instance.oscBarWindowObj.GetComponent<Unity_Overlay>();
+        Plugin.Instance.RepositionBar(chatBar, overlay);
+    }
+
     public static void ScalePatch(float dist, Unity_Overlay activeOverlay, float StartingWidth)
     {
         if (!Plugin.ChatModeActive || activeOverlay.overlayKey != "xso.overlay.keyboard") return;
@@ -107,9 +123,10 @@ public static class Patches
         // create new UiSettings instance
         var settings = new UiSettings
         {
+            KBVersion = Plugin.AssemblyVersion,
             KBCheckForUpdates = PluginSettings.GetSetting<bool>("CheckForUpdates").Value,
             KBLiveSend = PluginSettings.GetSetting<bool>("LiveSend").Value,
-            KBTypingIndicator = PluginSettings.GetSetting<bool>("TypingIndicator").Value
+            KBTypingIndicator = PluginSettings.GetSetting<bool>("TypingIndicator").Value,
         };
         var data2 = JsonUtility.ToJson(settings, true);
         ServerBridge.Instance.SendMessage("UpdateSettings", data2, null, sender);
@@ -137,6 +154,19 @@ public static class Patches
             case "KBOpenRepo":
                 Application.OpenURL("https://github.com/nyakowint/xsoverlay-keyboard-osc");
                 Tools.SendBread("KeyboardOSC Github link opened in browser!");
+                break;
+            case "KBAttachmentIndex":
+                kbAttachedTo = (WindowAttachementManager.DeviceToAttachTo)int.Parse(value);
+                Plugin.Instance.AttachKeyboard(int.Parse(value));
+                break;
+            case "KBVersion":
+                Plugin.PluginLogger.LogWarning("bro what are you doing this is literally text");
+                break;
+            case "KBVersionCheck":
+                Task.Run(Tools.CheckVersion);
+                break;
+            default:
+                Plugin.PluginLogger.LogWarning($"Unknown setting {name}. Looks like you need to update the plugin!");
                 break;
         }
 

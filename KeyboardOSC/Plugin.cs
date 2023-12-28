@@ -18,11 +18,11 @@ namespace KeyboardOSC
     [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", AssemblyVersion)]
     public class Plugin : BaseUnityPlugin
     {
-        public const string AssemblyVersion = "1.2.0.0";
+        public const string AssemblyVersion = "1.2.1.0";
         public static Plugin Instance;
         public static ManualLogSource PluginLogger;
 
-        public static bool isDebugConfig;
+        public static bool IsDebugConfig;
         public static bool ChatModeActive;
         public static bool ModifiedUiSuccess;
 
@@ -38,7 +38,7 @@ namespace KeyboardOSC
         private void Awake()
         {
 #if DEBUG
-            isDebugConfig = true;
+            IsDebugConfig = true;
 #endif
             PluginLogger = Logger;
             if (Instance != null) Destroy(this);
@@ -46,9 +46,10 @@ namespace KeyboardOSC
             PluginSettings.Init();
             
             // Download modified settings code
+            
             ModifiedUiSuccess = Tools.DownloadModifiedUi();
 
-            if (!Environment.CommandLine.Contains("-batchmode") || isDebugConfig) return;
+            if (!Environment.CommandLine.Contains("-batchmode") || IsDebugConfig) return;
             Logger.LogWarning("XSOverlay runs in batchmode normally (headless, without a window).");
             Logger.LogWarning("To see extended logs launch XSOverlay directly.");
         }
@@ -217,6 +218,11 @@ namespace KeyboardOSC
             WindowMovementManager.ScaleOverlayToScale(keebOverlay.widthInMeters - 0.1f, 0.1f, barOverlay);
             WindowMovementManager.MoveToEdgeOfWindowAndInheritRotation(barOverlay, keebOverlay,
                 Vector3.Distance(keebOverlay.transform.position, barOverlay.transform.position) * 0.05f, 0f, 1);
+        }
+
+        public void AttachKeyboard(int anchor)
+        {
+            WindowMovementManager.WMM_Inst.AttachWindowToDeviceIndex(anchor, overlayManager.Keyboard_Overlay);
         }
 
         public void ToggleChatMode()
