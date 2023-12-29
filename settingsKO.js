@@ -62,10 +62,10 @@ const SettingsLayout = {
         _: {
             KBCheckForUpdates: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Notify about updates', "The plugin will notify you if there's an update available :D", false),
             KBLiveSend: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Live send mode', "Messages will be sent to the chatbox as you type.", false),
-            KBTypingIndicator: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Send typing indicator', "Some people prefer to not let people know when they are typing for some reason lol", true),
-            KBAttachmentIndex: new SettingsElements.Setting(SettingsElements.UIComponents.Dropdown, 'Keyboard Attachment', "put the keyboard on ur head idk", 'Disabled', ['Disabled', 'So no head?', 'Left hand', 'Right hand']),
-            KBOpenRepo: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Plugin Repo', "View this plugin's repo on GitHub", '', '', ''),
+            KBTypingIndicator: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Send typing indicator', "Some people prefer to not let people know when they are typing. If this is you here ya go!", true),
+            KBAttachmentIndex: new SettingsElements.Setting(SettingsElements.UIComponents.Dropdown, 'Keyboard Attachment', "put the keyboard on ur head idk, attaching to your hand basically makes you one handed lool", 'Disabled', ['Disabled', 'So no head?', 'Left hand', 'Right hand']),
             KBVersionCheck: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Check for updates', "Check for updates rn!!!!!", '', '', ''),
+            KBOpenRepo: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Plugin Repo', "View this plugin's repo on GitHub", '', '', ''),
             KBVersion: new SettingsElements.Setting(SettingsElements.UIComponents.Text, 'KBVersion'),
         },
     },
@@ -526,6 +526,13 @@ function SetMenuStates(data) {
 
     var appVersionText = document.getElementById("VersionNumber_Desc");
     appVersionText.innerHTML = `Build ${data.VersionNumber}`;
+
+    console.log(data)
+
+    if (data.KBVersion) {
+        var kbVersion = document.getElementById("KBVersion_Desc");
+        kbVersion.innerHTML = `KeyboardOSC Version ${data.KBVersion}`;
+    }
 
     console.log("Settings Updated.");
 }

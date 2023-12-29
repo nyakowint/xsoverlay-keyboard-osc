@@ -37,4 +37,5 @@ public class UiSettings
     public bool KBCheckForUpdates = false;
     public bool KBLiveSend = false;
     public bool KBTypingIndicator = true;
+    public int KBAttachmentIndex = 0;
 }

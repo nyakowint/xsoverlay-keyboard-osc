@@ -12,7 +12,10 @@ namespace KeyboardOSC;
 public static class Patches
 {
     private static Harmony Harmony;
-    private static WindowAttachementManager.DeviceToAttachTo kbAttachedTo;
+
+    private static WindowAttachementManager.DeviceToAttachTo kbAttachedTo =
+        WindowAttachementManager.DeviceToAttachTo.None;
+
     private static bool HasSettingsBeenOpenedOnce;
 
     public static void PatchAll()
@@ -127,6 +130,7 @@ public static class Patches
             KBCheckForUpdates = PluginSettings.GetSetting<bool>("CheckForUpdates").Value,
             KBLiveSend = PluginSettings.GetSetting<bool>("LiveSend").Value,
             KBTypingIndicator = PluginSettings.GetSetting<bool>("TypingIndicator").Value,
+            KBAttachmentIndex = (int)kbAttachedTo
         };
         var data2 = JsonUtility.ToJson(settings, true);
         ServerBridge.Instance.SendMessage("UpdateSettings", data2, null, sender);

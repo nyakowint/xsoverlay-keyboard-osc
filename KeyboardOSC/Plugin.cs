@@ -206,6 +206,10 @@ namespace KeyboardOSC
 
 
             ChatMode.Setup(oscbarText, charCounterText);
+
+            var trackDevice = keyboardWindowObj.AddComponent<Overlay_TrackDevice>();
+            trackDevice.TrackedDevice = Unity_Overlay.OverlayTrackedDevice.None;
+            
             oscBarRoot.SetActive(true);
             keyboardWindowObj.SetActive(true);
             WindowMovementManager.MoveToEdgeOfWindowAndInheritRotation(oscBarWindow, keyboardWindow,
@@ -222,7 +226,7 @@ namespace KeyboardOSC
 
         public void AttachKeyboard(int anchor)
         {
-            WindowMovementManager.WMM_Inst.AttachWindowToDeviceIndex(anchor, overlayManager.Keyboard_Overlay);
+            WindowMovementManager.WMM_Inst.AttachWindowToDeviceIndex(anchor, Overlay_Manager.Instance.Keyboard_Overlay);
         }
 
         public void ToggleChatMode()
