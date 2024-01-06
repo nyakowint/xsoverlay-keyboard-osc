@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using HarmonyLib;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using Valve.VR;
 using WindowsInput;
 using WindowsInput.Native;
 using XSOverlay;
@@ -83,6 +85,40 @@ public static class Patches
         Harmony.Patch(reqSettings, reqSettingsPatch);
 
         #endregion
+
+
+        #region Experimental bar clicking nonsense
+
+        var guiDown = AccessTools.Method(typeof(Raycaster), "OnGuiPressDown");
+        var downPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(ClickPatch)));
+
+        Harmony.Patch(guiDown, null, downPatch);
+
+        #endregion
+    }
+    
+    public static void ClickPatch(SteamVR_Input_Sources inputSource, Raycaster __instance)
+    {
+        if (__instance.HoveringOverlay == null || __instance.HoveringOverlay.overlayKey != "chatbar") return;
+        Plugin.PluginLogger.LogWarning($"ClickPatch of {__instance.gameObject.name}//{__instance.name} on {inputSource}");
+        var raycasts = (List<RaycastResult>) AccessTools.Field(typeof(Raycaster), "PointerResult").GetValue(__instance);
+        var pointerData = (PointerEventData) AccessTools.Field(typeof(Raycaster), "PointerData").GetValue(__instance);
+        if (raycasts == null)
+        {
+            Plugin.PluginLogger.LogWarning("rip");
+            return;
+        }
+
+        if (pointerData == null)
+        {
+            Plugin.PluginLogger.LogWarning("rip: pointerdata edition");
+            return;
+        }
+        
+        foreach (var raycast in raycasts)
+        {
+            ExecuteEvents.Execute(raycast.gameObject, pointerData, ExecuteEvents.pointerClickHandler);
+        }
     }
 
     public static bool KeyboardPatch(KeyboardKey.VirtualKeyEventData keyEventData)
