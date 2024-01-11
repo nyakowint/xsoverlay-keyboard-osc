@@ -16,6 +16,8 @@
     </PropertyGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition=" '$(Configuration)' == 'Debug' ">
         <Exec Command="taskkill /f /im XSOverlay.exe" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ContinueOnError="true"/>
+        <Exec Command="taskkill /f /im &quot;XSOverlay Media Manager.exe&quot;" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ContinueOnError="true"/>
+        <Exec Command="taskkill /f /im &quot;Vuplex WebView.vuplex&quot;" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ContinueOnError="true"/>
         <Exec Command="sleep 0.5"/>
         <Exec Command="move &quot;$(SolutionDir)builds\Debug\net472\$(ProjectName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\XSOverlay_Beta\BepInEx\plugins&quot;"/>
     </Target>

@@ -3,7 +3,7 @@
 > [!NOTE]
 > This is a third-party modification to [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/). Use at your
 > own discretion\
-> Last tested with build 649. It should work on any recent version.
+> Last tested with build 650. It should work on any recent version.
 
 - Installation: [Automatic](#how-to-install) or [Manual](#manual-installation)
 - [Usage instructions](#how-to-use)  
