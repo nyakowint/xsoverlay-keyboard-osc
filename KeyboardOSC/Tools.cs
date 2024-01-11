@@ -12,6 +12,7 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using WindowsInput.Native;
 using XSOverlay;
+using XSOverlay.Websockets.API;
 using Object = UnityEngine.Object;
 
 namespace KeyboardOSC;
@@ -35,7 +36,7 @@ public static class Tools
 
     public static void SendBread(string title, string content = "")
     {
-        var notif = new XSOMessage()
+        var notif = new Objects.NotificationObject
         {
             title = title,
             content = content,

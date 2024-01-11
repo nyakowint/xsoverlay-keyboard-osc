@@ -10,6 +10,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using XSOverlay;
+using XSOverlay.WebApp;
 
 [assembly: AssemblyVersion(Plugin.AssemblyVersion)]
 
@@ -63,7 +64,7 @@ namespace KeyboardOSC
             ReleaseStickyKeys = AccessTools.Method(typeof(KeyboardInputHandler), "ReleaseStickyKeys");
             Patches.PatchAll();
 
-            ServerBridge.Instance.CommandMap["Keyboard"] = delegate
+            ServerClientBridge.Instance.Api.Commands["Keyboard"] = delegate
             {
                 InitializeKeyboard();
                 Overlay_Manager.Instance.EnableKeyboard();
@@ -80,7 +81,7 @@ namespace KeyboardOSC
             SetupToggleButton();
             SetupBar();
 
-            ServerBridge.Instance.CommandMap["Keyboard"] = delegate { Overlay_Manager.Instance.EnableKeyboard(); };
+            ServerClientBridge.Instance.Api.Commands["Keyboard"] = delegate { Overlay_Manager.Instance.EnableKeyboard(); };
             var checkUpdates = PluginSettings.GetSetting<bool>("CheckForUpdates");
             if (checkUpdates.Value) Task.Run(Tools.CheckVersion);
         }

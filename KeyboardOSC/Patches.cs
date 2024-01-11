@@ -5,6 +5,8 @@ using UnityEngine;
 using WindowsInput;
 using WindowsInput.Native;
 using XSOverlay;
+using XSOverlay.WebApp;
+using XSOverlay.Websockets.API;
 
 namespace KeyboardOSC;
 
@@ -75,7 +77,7 @@ public static class Patches
         var setSettings = AccessTools.Method(typeof(XSettingsManager), nameof(XSettingsManager.SetSetting));
         var setSettingsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(SetSettingPatch)));
 
-        var reqSettings = AccessTools.Method(typeof(ServerBridge), "OnRequestCurrentSettings");
+        var reqSettings = AccessTools.Method(typeof(ApiHandler), "OnRequestCurrentSettings");
         var reqSettingsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(RequestSettingsPatch)));
 
         Harmony.Patch(toggleAppSettings, postfix: settingsOverlayPatch);
@@ -133,7 +135,7 @@ public static class Patches
             KBAttachmentIndex = (int)kbAttachedTo
         };
         var data2 = JsonUtility.ToJson(settings, true);
-        ServerBridge.Instance.SendMessage("UpdateSettings", data2, null, sender);
+        ServerClientBridge.Instance.Api.SendMessage("UpdateSettings", data2, null, sender);
     }
 
     public static bool SetSettingPatch(string name, string value, string value1, bool sendAnalytics = false)
@@ -168,9 +170,6 @@ public static class Patches
                 break;
             case "KBVersionCheck":
                 Task.Run(Tools.CheckVersion);
-                break;
-            default:
-                Plugin.PluginLogger.LogWarning($"Unknown setting {name}. Looks like you need to update the plugin!");
                 break;
         }
 
