@@ -2,11 +2,11 @@
 
 > [!NOTE]
 > This is a third-party modification to [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/). Use at your
-> own discretion\
-> Last tested with build 650. It should work on any recent version.
+> own discretion \
+> Last tested with [beta] build 659. It should work on any recent version.
 
 - Installation: [Automatic](#how-to-install) or [Manual](#manual-installation)
-- [Usage instructions](#how-to-use)  
+- [Usage instructions](#how-to-use)
 - [Preview images](#preview)
 - [Troubleshooting](#troubleshooting)
 
@@ -22,13 +22,18 @@ Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/nyakowint/
 If you're having trouble, try [manually installing](#manual-installation) with the instructions below.
 
 ## How to use
+
 1. Enable OSC. For VRChat you can find this in the Action Menu (Options > OSC > Enabled)
 2. Open the XSOverlay keyboard
 3. Press the message icon on the right hand side of the keyboard, under the lock button
 4. congration you done it - Check out the [shortcut keys](#shortcut-keys)!
 
-Optionally open XSOverlay Settings (Settings > KeyboardOSC) and change them to your liking \ 
-(this may break with an update, you can go back with the tab under bindings) 
+Optionally open XSOverlay Settings (Settings > KeyboardOSC) and change them to your liking \
+(this may break with an update, you can go back with the tab under bindings)
+
+> [!NOTE]
+> The modified settings UI uses default theme on purpose to cause less annoyances for me.
+> If you're a custom theme user (currently unreleased) and this bothers you enough feel free to pull request. i lazy
 
 ## Manual Installation
 
@@ -43,14 +48,15 @@ Optionally open XSOverlay Settings (Settings > KeyboardOSC) and change them to y
 
 ### Removing the plugin
 
-- Follow the install steps in reverse order. Delete `BepInEx`, `doorstop_config.ini`, `winhttp.dll` and other non overlay files from your XSOverlay folder.
+- Follow the install steps in reverse order. Delete `BepInEx`, `doorstop_config.ini`, `winhttp.dll` and other non
+  overlay files from your XSOverlay folder.
 
 ## Preview
-|||
-| ----------------------------------- | ----------------------------------- |
-| ![Icon preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/d43accef-d457-4d00-8b1f-3754e1edaa74) | ![osc bar preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/61d71541-1cda-4222-bdbf-8f96fa602e0b) |
-| ![settings preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/53179e68-1f21-46ec-89a7-9f3d649bbc14) | ![version checker preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/6aadbcc6-263c-443d-8ffb-fce062c2cbc9)  |
 
+|                                                                                                                               |                                                                                                                                      |
+|-------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| ![Icon preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/d43accef-d457-4d00-8b1f-3754e1edaa74)     | ![osc bar preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/61d71541-1cda-4222-bdbf-8f96fa602e0b)         |
+| ![settings preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/53179e68-1f21-46ec-89a7-9f3d649bbc14) | ![version checker preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/6aadbcc6-263c-443d-8ffb-fce062c2cbc9) |
 
 # Shortcut Keys
 
@@ -75,23 +81,34 @@ were identical last I checked.
 
 ## Troubleshooting
 
-The bar may be positioned significantly higher than intended until you move it for the first time. I consider this a non-issue.
+The bar may be positioned significantly higher than intended until you move it for the first time. I consider this a
+non-issue.
 
 If you can't seem to get OSC to work, try one of these:
-- Change the OSC port used by XSOverlay, instructions on [their docs](https://xiexe.github.io/XSOverlayDocumentation/#/OSCAPI) (it does not use OSCQuery as of writing, so this is probably your issue)
-- Reset your OSC config? 
 
-If you still need help you can find me in my dev server [discord](https://discord.gg/BrUacrw4cy)
+- Change the OSC port used by XSOverlay, look @ [their docs](https://xiexe.github.io/XSOverlayDocumentation/#/OSCAPI) (
+  it does not use OSCQuery as of writing, so this is probably your issue)
+- Reset your OSC config?
+
+If this plugin's settings dont show up in the menu, it's likely:
+
+- You are using a custom theme and it is conflicting somehow. As of writing this update is not fully out and i have no
+  way of testing it lmfao
+- Either your XSOverlay or Plugin are outdated
+- something else, bug me about it or fix urself idk
+
+If you still need help you can find me in my dev [discord](https://discord.gg/BrUacrw4cy)
 
 ## Build from source
 
 Check the .csproj or actions workflow
 
-but if you wanna build this just drop the necessary dlls from `XSOverlay_Data/Managed` into `refs`, restore and build w/ Release
+but if you wanna build this just drop the necessary dlls from `XSOverlay_Data/Managed` into `refs`, restore and build w/
+Release
 config. dll will be in `builds` folder
 
 ### Motivation
 
-- vrchat's keyboard is so gosh darn buggy. I wasn't even able to type a full sentence before it malfunctioned. this bug is probably buried on their swamped canny page lol
-- i like that ovr toolkit had this feature already, but i dont want to switch back to it
-- u nerd lol
+- vrchat's keyboard is very buggy and likes to malfunction or just not work very often
+- ovr toolkit has been hella laggy everytime i have come back to use it
+- ur a nerd lol

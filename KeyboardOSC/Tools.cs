@@ -8,10 +8,13 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using BepInEx;
+using HarmonyLib;
 using Newtonsoft.Json.Linq;
+using Steamworks;
 using UnityEngine;
 using WindowsInput.Native;
 using XSOverlay;
+using XSOverlay.WebApp;
 using XSOverlay.Websockets.API;
 using Object = UnityEngine.Object;
 
@@ -121,7 +124,6 @@ public static class Tools
         {
             logger.LogInfo("No updates available.");
         }
-        
     }
 
     public static bool DownloadModifiedUi()
@@ -134,14 +136,14 @@ public static class Tools
             logger.LogInfo("Downloading modified HTML...");
             var htmlContent =
                 client.DownloadString(
-                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/SettingsKO.html");
+                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/NO-MORE-NODE/SettingsKO.html");
             logger.LogInfo("Downloading modified JS...");
             var jsContent =
                 client.DownloadString(
-                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/settingsKO.js");
-
-            var htmlPath = $"{Application.streamingAssetsPath}/Plugins/UserInterface/SettingsKO.html";
-            var jsPath = $"{Application.streamingAssetsPath}/Plugins/UserInterface/Shared/js/settingsKO.js";
+                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/NO-MORE-NODE/settingsKO.js");
+            
+            var htmlPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/Settings/SettingsKO.html";
+            var jsPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/_Shared/js/settingsKO.js";
 
             logger.LogInfo($"Writing settings HTML to: {htmlPath}");
             logger.LogInfo($"Writing settings JS to: {jsPath}");

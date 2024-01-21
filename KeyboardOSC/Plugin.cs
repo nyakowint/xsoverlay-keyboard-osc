@@ -19,7 +19,7 @@ namespace KeyboardOSC
     [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", AssemblyVersion)]
     public class Plugin : BaseUnityPlugin
     {
-        public const string AssemblyVersion = "1.2.2.1";
+        public const string AssemblyVersion = "1.2.2.2";
         public static Plugin Instance;
         public static ManualLogSource PluginLogger;
 
@@ -47,7 +47,6 @@ namespace KeyboardOSC
             PluginSettings.Init();
             
             // Download modified settings code
-            
             ModifiedUiSuccess = Tools.DownloadModifiedUi();
 
             if (!Environment.CommandLine.Contains("-batchmode") || IsDebugConfig) return;

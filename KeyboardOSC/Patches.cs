@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using HarmonyLib;
+using Steamworks;
 using UnityEngine;
 using WindowsInput;
 using WindowsInput.Native;
@@ -117,18 +118,26 @@ public static class Patches
     public static void SettingsOverlayPatch()
     {
         if (!Plugin.ModifiedUiSuccess || HasSettingsBeenOpenedOnce) return;
+        Plugin.PluginLogger.LogInfo("Replacing settings page url!");
+        var globalSettings = Overlay_Manager.Instance.GlobalSettingsMenuOverlay;
         var loadString =
-            $"http://localhost:{ExternalMessageHandler.Instance.Config.WebSocketPort + 1}/ui/SettingsKO.html";
-        Overlay_Manager.Instance.GlobalSettingsMenuOverlay.OverlayWebView._webView.WebView.LoadUrl(loadString);
+            $"http://localhost:{ExternalMessageHandler.Instance.Config.WebSocketPort + 1}/apps/_UI/Default/Settings/SettingsKO.html";
+        globalSettings.OverlayWebView._webView.WebView.LoadUrl(loadString);
         HasSettingsBeenOpenedOnce = true;
     }
 
     public static void RequestSettingsPatch(string sender, string data)
     {
         // create new UiSettings instance
+        var pluginVersion = Plugin.AssemblyVersion;
+        if (SteamClient.IsValid && SteamApps.CurrentBetaName != null)
+        {
+            pluginVersion += $" — you're on {SteamApps.CurrentBetaName} branch, check repo for beta plugin releases";
+        }
+        
         var settings = new UiSettings
         {
-            KBVersion = Plugin.AssemblyVersion,
+            KBVersion = pluginVersion,
             KBCheckForUpdates = PluginSettings.GetSetting<bool>("CheckForUpdates").Value,
             KBLiveSend = PluginSettings.GetSetting<bool>("LiveSend").Value,
             KBTypingIndicator = PluginSettings.GetSetting<bool>("TypingIndicator").Value,
