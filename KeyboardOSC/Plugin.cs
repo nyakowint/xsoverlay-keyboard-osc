@@ -23,7 +23,7 @@ namespace KeyboardOSC
         public static Plugin Instance;
         public static ManualLogSource PluginLogger;
 
-        public static bool IsDebugConfig;
+        public static bool IsDebugConfig = false;
         public static bool ChatModeActive;
         public static bool ModifiedUiSuccess;
 
