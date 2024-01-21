@@ -33,33 +33,36 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Reference Include="Assembly-CSharp">
-            <HintPath>$(SolutionDir)refs\Assembly-CSharp.dll</HintPath>
-        </Reference>
-        <Reference Include="Newtonsoft.Json">
-            <HintPath>$(SolutionDir)refs\Newtonsoft.Json.dll</HintPath>
-        </Reference>
-        <Reference Include="System.Net.Http">
-            <HintPath>$(SolutionDir)refs\System.Net.Http.dll</HintPath>
-        </Reference>
-        <Reference Include="Unity.TextMeshPro">
-            <HintPath>$(SolutionDir)refs\Unity.TextMeshPro.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.CoreModule">
-            <HintPath>$(SolutionDir)refs\UnityEngine.CoreModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.IMGUIModule">
-            <HintPath>$(SolutionDir)refs\UnityEngine.IMGUIModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.UI">
-            <HintPath>$(SolutionDir)refs\UnityEngine.UI.dll</HintPath>
-        </Reference>
-        <Reference Include="uOSC.Runtime">
-            <HintPath>$(SolutionDir)refs\uOSC.Runtime.dll</HintPath>
-        </Reference>
+        <EmbeddedResource Include="chat.png"/>
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="chat.png"/>
+      <Reference Include="Assembly-CSharp">
+        <HintPath>..\refs\Assembly-CSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="Facepunch.Steamworks.Win64">
+        <HintPath>..\refs\Facepunch.Steamworks.Win64.dll</HintPath>
+      </Reference>
+      <Reference Include="Newtonsoft.Json">
+        <HintPath>..\refs\Newtonsoft.Json.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Net.Http">
+        <HintPath>..\refs\System.Net.Http.dll</HintPath>
+      </Reference>
+      <Reference Include="Unity.TextMeshPro">
+        <HintPath>..\refs\Unity.TextMeshPro.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.CoreModule">
+        <HintPath>..\refs\UnityEngine.CoreModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.IMGUIModule">
+        <HintPath>..\refs\UnityEngine.IMGUIModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UI">
+        <HintPath>..\refs\UnityEngine.UI.dll</HintPath>
+      </Reference>
+      <Reference Include="uOSC.Runtime">
+        <HintPath>..\refs\uOSC.Runtime.dll</HintPath>
+      </Reference>
     </ItemGroup>
 </Project>

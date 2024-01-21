@@ -232,6 +232,7 @@ public static class ChatMode
             {"//2hrt", "💕"},
             {"//skull", "💀"},
             {"//skull2", "☠"},
+            {"//rx3", "rawr x3"}
         };
 
         foreach (var shortcode in shortcodes)
