@@ -107,7 +107,6 @@ namespace KeyboardOSC
             oscBarRoot.SetActive(false);
             oscBarRoot.AddComponent<OverlayTopLevelObject>();
 
-
             oscBarWindowObj = Instantiate(keyboardWindow.gameObject, oscBarRoot.transform);
             oscBarWindowObj.Rename("KeyboardOSC Window");
             oscBarWindowObj.DestroyComponent<KeyboardGlobalManager>();

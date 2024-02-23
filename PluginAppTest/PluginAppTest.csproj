@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <AssemblyName>PluginAppTest</AssemblyName>
+        <Description>Keyboard mod for XSOverlay</Description>
+        <Version>1.0.0</Version>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>latest</LangVersion>
+        <OutputPath>$(SolutionDir)\builds\$(Configuration)</OutputPath>
+        <IsPackable>false</IsPackable>
+        <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <DebugType>Full</DebugType>
+    </PropertyGroup>
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition=" '$(Configuration)' == 'Debug' ">
+        <Exec Command="taskkill /f /im XSOverlay.exe" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ContinueOnError="true"/>
+        <Exec Command="taskkill /f /im &quot;XSOverlay Media Manager.exe&quot;" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ContinueOnError="true"/>
+        <Exec Command="taskkill /f /im &quot;Vuplex WebView.vuplex&quot;" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ContinueOnError="true"/>
+        <Exec Command="sleep 0.5"/>
+        <Exec Command="move &quot;$(SolutionDir)builds\Debug\net472\$(ProjectName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\XSOverlay_Beta\BepInEx\plugins&quot;"/>
+    </Target>
+    <ItemGroup>
+        <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all"/>
+        <PackageReference Include="BepInEx.Core" Version="5.4.21"/>
+        <PackageReference Include="BepInEx.PluginInfoProps" Version="2.1.0"/>
+        <PackageReference Include="UnityEngine.Modules" Version="2019.4.34" IncludeAssets="compile"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Assembly-CSharp">
+        <HintPath>..\refs\Assembly-CSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="Facepunch.Steamworks.Win64">
+        <HintPath>..\refs\Facepunch.Steamworks.Win64.dll</HintPath>
+      </Reference>
+      <Reference Include="Newtonsoft.Json">
+        <HintPath>..\refs\Newtonsoft.Json.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Net.Http">
+        <HintPath>..\refs\System.Net.Http.dll</HintPath>
+      </Reference>
+      <Reference Include="Unity.TextMeshPro">
+        <HintPath>..\refs\Unity.TextMeshPro.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.CoreModule">
+        <HintPath>..\refs\UnityEngine.CoreModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.IMGUIModule">
+        <HintPath>..\refs\UnityEngine.IMGUIModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UI">
+        <HintPath>..\refs\UnityEngine.UI.dll</HintPath>
+      </Reference>
+      <Reference Include="uOSC.Runtime">
+        <HintPath>..\refs\uOSC.Runtime.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+</Project>
