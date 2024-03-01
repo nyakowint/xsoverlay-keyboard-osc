@@ -4,8 +4,10 @@ using System.Net;
 using System.Threading.Tasks;
 using BepInEx.Logging;
 using Newtonsoft.Json;
+using Steamworks.Data;
 using UnityEngine;
 using XSOverlay;
+using XSOverlay.WebApp;
 
 namespace KeyboardOSC.Twitch;
 
@@ -22,6 +24,7 @@ public abstract class Core
         return Tuple.Create(PluginSettings.GetSetting<string>("MsgPrefix").Value,
             PluginSettings.GetSetting<string>("MsgSuffix").Value);
     }
+    
     private static void OpenAuthPage(int port = 42071)
     {
         if (!Plugin.IsDebugConfig)

@@ -96,14 +96,6 @@ public static class ChatMode
                 _isFirstMsg = true;
                 Logger.LogInfo("Inserted last input");
                 return;
-            case VirtualKeyCode.PAUSE:
-                // pause break to toggle twitch sending - only if setup tho
-                if (Helix.CheckAccessToken())
-                {
-                    PluginSettings.SetSetting<bool>("TwitchSending", Core.IsTwitchSendingEnabled.ToString().ToLower());
-                }
-
-                break;
             // copy + paste
             case VirtualKeyCode.VK_C:
                 if (!isCtrlHeld) break;
@@ -121,7 +113,7 @@ public static class ChatMode
                     Logger.LogInfo($"Sending message: {_currentText.ReplaceShortcodes()} [ls]");
                     _lastMsg = _currentText;
                     SendMessage(true);
-                    if (Core.IsTwitchSendingEnabled)
+                    if (Core.IsTwitchSendingEnabled && !_isSilentMsg)
                     {
                         var affixes = Core.GetAffixes();
                         Task.Run(() =>
@@ -187,7 +179,7 @@ public static class ChatMode
         {
             Tools.SendOsc("/chatbox/input", _currentText.ReplaceShortcodes(), true, !_isSilentMsg);
             SendTyping(false);
-            if (Core.IsTwitchSendingEnabled)
+            if (Core.IsTwitchSendingEnabled && !_isSilentMsg)
             {
                 var affixes = Core.GetAffixes();
                 Task.Run(() =>

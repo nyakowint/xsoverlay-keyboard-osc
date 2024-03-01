@@ -74,7 +74,6 @@ Use the following shortcut keys:
 | <kbd>CTRL</kbd> + <kbd>C</kbd> | Copy current text to clipboard
 | <kbd>CTRL</kbd> + <kbd>V</kbd> | Paste text from your clipboard
 | <kbd>CTRL</kbd> + <kbd>Backspace</kbd> | Delete last word (experimental)
-| <kbd>PAUSE (BREAK)</kbd> | Toggle twitch
 | <kbd>ENTER</kbd> | Send message to the chatbox!
 
 I cannot guarantee full functionality with the CVR chatbox mod, as this is built with VRChat's OSC routes in mind. They
@@ -89,7 +88,7 @@ were identical last I checked.
 - Press the Twitch setup button
 - In the webpage fill in your Client ID and Client Secret from Twitch Dev then press Authorize on both pages
 - If everything works out (hopefully) you should get a toast message saying it's successful
-  - Quickly toggle the "twitch sending" setting by pressing the pausebreak key if needed
+  - Use silent message (Tab) to not send to twitch per message if needed
 
 ## Troubleshooting
 
