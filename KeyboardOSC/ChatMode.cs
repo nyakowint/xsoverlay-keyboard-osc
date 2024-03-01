@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Timers;
 using BepInEx;
 using BepInEx.Logging;
@@ -99,8 +100,9 @@ public static class ChatMode
                 // pause break to toggle twitch sending - only if setup tho
                 if (Helix.CheckAccessToken())
                 {
-                    PluginSettings.SetSetting<bool>("TwitchSending", Core.IsTwitchSendingEnabled.ToString().ToLower());   
+                    PluginSettings.SetSetting<bool>("TwitchSending", Core.IsTwitchSendingEnabled.ToString().ToLower());
                 }
+
                 break;
             // copy + paste
             case VirtualKeyCode.VK_C:
@@ -122,10 +124,17 @@ public static class ChatMode
                     if (Core.IsTwitchSendingEnabled)
                     {
                         var affixes = Core.GetAffixes();
-                        Helix.SendTwitchMessage($"{affixes.Item1} {_currentText.ReplaceShortcodes()} {affixes.Item2}");
+                        Task.Run(() =>
+                        {
+                            Helix.SendTwitchMessage(
+                                $"{affixes.Item1} {_currentText.ReplaceShortcodes()} {affixes.Item2}");
+                            ThreadingHelper.Instance.StartSyncInvoke(ClearInput);
+                        });
                     }
-
-                    ClearInput();
+                    else
+                    {
+                        ClearInput();   
+                    }
                 }
                 else
                 {
@@ -181,7 +190,8 @@ public static class ChatMode
             if (Core.IsTwitchSendingEnabled)
             {
                 var affixes = Core.GetAffixes();
-                Helix.SendTwitchMessage($"{affixes.Item1} {_currentText.ReplaceShortcodes()} {affixes.Item2}");
+                Task.Run(() =>
+                    Helix.SendTwitchMessage($"{affixes.Item1} {_currentText.ReplaceShortcodes()} {affixes.Item2}"));
             }
 
             _lastMsg = _currentText;

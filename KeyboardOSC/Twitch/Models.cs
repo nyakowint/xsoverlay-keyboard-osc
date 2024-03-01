@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace KeyboardOSC.Twitch;
 
@@ -63,6 +64,12 @@ public class AuthResponse
 }
 
 public class ChatMsgResponse
+{
+    [JsonProperty(PropertyName = "data")]
+    public List<ChatMsgData> Data { get; set; }
+}
+
+public class ChatMsgData
 {
     [JsonProperty(PropertyName = "message_id")]
     public string MessageId { get; set; }
