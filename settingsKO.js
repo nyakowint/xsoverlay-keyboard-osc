@@ -65,11 +65,16 @@ const SettingsLayout = {
             KBCheckForUpdates: new Ui.Setting(Ui.ComponentType.Toggle, 'Notify about updates', "The plugin will notify you if there's an update available :D", false),
             KBLiveSend: new Ui.Setting(Ui.ComponentType.Toggle, 'Live send mode', "Messages will be sent to the chatbox as you type.", false),
             KBTypingIndicator: new Ui.Setting(Ui.ComponentType.Toggle, 'Send typing indicator', "Some people prefer to not let people know when they are typing. If this is you here ya go!", true),
-            TwitchSetup: new Ui.Setting(Ui.ComponentType.Button, 'Setup Twitch', "Setup simultaneous sending to Twitch and OSC", null, null, null),
             KBVersionCheck: new Ui.Setting(Ui.ComponentType.Button, 'Check for updates', "Check for updates rn!!!!!", null, null, null),
             KBOpenRepo: new Ui.Setting(Ui.ComponentType.Button, 'Plugin Repo', "View this plugin's repo on GitHub", null, null, null),
+            OpenPluginList: new Ui.Setting(Ui.ComponentType.Button, 'xso plugin app list', "testing stuff requires extra dll", null, null, null),
             KBVersion: new Ui.Setting(Ui.ComponentType.Text, 'KBVersion'),
         },
+        Twitch: {
+            KBTwitchSending: new Ui.Setting(Ui.ComponentType.Toggle, 'Twitch sending', "Let chat know what you're saying in the chatbox", false),
+            KBDisableAffixes: new Ui.Setting(Ui.ComponentType.Toggle, 'Disable prefix/suffix', "some convention to use tags for msgs not directed at viewer", false),
+            TwitchSetup: new Ui.Setting(Ui.ComponentType.Button, 'Open Twitch Setup Page', "Open page to authorize for Twitch sending", null, null, null),
+        }
     },
     General: {
         XSOverlay: {
@@ -107,7 +112,6 @@ const SettingsLayout = {
     Overlays: {
         Capture: {
             CaptureMethod: new Ui.Setting(Ui.ComponentType.Dropdown, 'Window Capture API', "", 'Windows Graphics Capture', ['WindowsGraphicsCapture', 'BitBlt']),
-            // ShowWindowPreviews: new Ui.Setting(Ui.ComponentType.Toggle, 'Show Window Thumbnails', true) NOTE:: DEPRECATED
         },
         Overlay_Behavior: {
             AutoRecenter: new Ui.Setting(Ui.ComponentType.Toggle, 'Auto Recenter', "", true),
@@ -142,10 +146,10 @@ const SettingsLayout = {
             ResetWristPosition: new Ui.Setting(Ui.ComponentType.Button, 'Reset Wrist Position', "", '', '', ''),
         },
         Date_and_Time:
-        {
-            ContinentalTimeFormat: new Ui.Setting(Ui.ComponentType.Toggle, '24 Hour Clock', "", false),
-            DateFormat: new Ui.Setting(Ui.ComponentType.Dropdown, 'Date Format', "", 'DD / MM / YY', ['DD / MM / YY', 'MM / DD / YY', 'YY / MM / DD'])
-        },
+            {
+                ContinentalTimeFormat: new Ui.Setting(Ui.ComponentType.Toggle, '24 Hour Clock', "", false),
+                DateFormat: new Ui.Setting(Ui.ComponentType.Dropdown, 'Date Format', "", 'DD / MM / YY', ['DD / MM / YY', 'MM / DD / YY', 'YY / MM / DD'])
+            },
         Battery_Widget: {
             AlwaysShowDetailedInformation: new Ui.Setting(Ui.ComponentType.Toggle, 'Always Show Details', "", false),
             DefaultShowBatteryPercentage: new Ui.Setting(Ui.ComponentType.Toggle, 'Show Percentage by Default', "", true),
