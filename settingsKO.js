@@ -530,5 +530,10 @@ function SetMenuStates(data) {
     var appVersionText = document.getElementById("VersionNumber_Desc");
     appVersionText.innerHTML = `Build ${data.VersionNumber}`;
 
+    if (data.KBVersion) {
+        var kbv = document.getElementById("KBVersion_Desc");
+        kbv.innerHTML = `Version ${data.VersionNumber}`;
+    }
+
     console.log("Settings Updated.");
 }

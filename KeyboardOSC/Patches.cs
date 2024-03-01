@@ -131,6 +131,9 @@ public static class Patches
         if (SteamClient.IsValid && SteamApps.CurrentBetaName != null)
         {
             pluginVersion += $" — you're on the <strong>{SteamApps.CurrentBetaName}</strong> branch of XSOverlay! Check the plugin repo releases tab for beta plugin updates/fixes";
+        } else if (Tools.UpdateCheckResult.Key)
+        {
+            pluginVersion += $" — A newer version {Tools.UpdateCheckResult.Value} is available!";
         }
         
         var settings = new UiSettings

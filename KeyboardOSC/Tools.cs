@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -23,6 +24,8 @@ namespace KeyboardOSC;
 #pragma warning disable Publicizer001
 public static class Tools
 {
+    
+    public static KeyValuePair<bool, string> UpdateCheckResult = new(false, "");
     public static void SendOsc(string address, params object[] msg)
     {
         var oscClient = ExternalMessageHandler.Instance.OscClient;
@@ -116,6 +119,7 @@ public static class Tools
         var releaseVersion = release.GetName().Version;
         if (releaseVersion > Version.Parse(Plugin.AssemblyVersion))
         {
+            UpdateCheckResult = new KeyValuePair<bool, string>(true, releaseVersion.ToString());
             logger.LogInfo($"New version available! {releaseVersion}");
             ThreadingHelper.Instance.StartSyncInvoke(() => SendBread("Plugin Update Available",
                 $"Version {releaseVersion} of KeyboardOSC is available. You currently have version {Plugin.AssemblyVersion}, it's recommended to install it :D"));
