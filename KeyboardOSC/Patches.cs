@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using HarmonyLib;
+using KeyboardOSC.Twitch;
 using Steamworks;
 using UnityEngine;
 using WindowsInput;
@@ -15,9 +16,6 @@ namespace KeyboardOSC;
 public static class Patches
 {
     private static Harmony Harmony;
-
-    private static WindowAttachementManager.DeviceToAttachTo kbAttachedTo =
-        WindowAttachementManager.DeviceToAttachTo.None;
 
     private static bool HasSettingsBeenOpenedOnce;
 
@@ -137,13 +135,13 @@ public static class Patches
         
         var settings = new UiSettings
         {
-            KBVersion = pluginVersion,
             KBCheckForUpdates = PluginSettings.GetSetting<bool>("CheckForUpdates").Value,
             KBLiveSend = PluginSettings.GetSetting<bool>("LiveSend").Value,
             KBTypingIndicator = PluginSettings.GetSetting<bool>("TypingIndicator").Value,
-            KBAttachmentIndex = (int)kbAttachedTo
+            KBTwitchSending = PluginSettings.GetSetting<bool>("TwitchSending").Value,
+            KBVersion = pluginVersion,
         };
-        var data2 = JsonUtility.ToJson(settings, true);
+        var data2 = JsonUtility.ToJson(settings, false);
         ServerClientBridge.Instance.Api.SendMessage("UpdateSettings", data2, null, sender);
     }
 
@@ -166,21 +164,20 @@ public static class Patches
             case "KBTypingIndicator":
                 PluginSettings.SetSetting<bool>("TypingIndicator", value);
                 break;
+            case "KBTwitchSending":
+                PluginSettings.SetSetting<bool>("TwitchSending", value);
+                break;
             case "KBOpenRepo":
                 Application.OpenURL("https://github.com/nyakowint/xsoverlay-keyboard-osc");
                 Tools.SendBread("KeyboardOSC Github link opened in browser!");
-                break;
-            case "KBAttachmentIndex":
-                kbAttachedTo = (WindowAttachementManager.DeviceToAttachTo)int.Parse(value);
-                Plugin.Instance.AttachKeyboard(int.Parse(value));
-                break;
-            case "KBVersion":
-                Plugin.PluginLogger.LogWarning("bro what are you doing this is literally text");
                 break;
             case "KBVersionCheck":
                 Task.Run(Tools.CheckVersion);
                 break;
         }
+        
+        if (name.StartsWith("Twitch"))
+            Core.SettingsCallback(name, value);
 
         return true;
     }
