@@ -130,7 +130,7 @@ public static class Patches
         var pluginVersion = Plugin.AssemblyVersion;
         if (SteamClient.IsValid && SteamApps.CurrentBetaName != null)
         {
-            pluginVersion += $" — you're on {SteamApps.CurrentBetaName} branch, check repo for beta plugin releases";
+            pluginVersion += $" — you're on the <strong>{SteamApps.CurrentBetaName}</strong> branch of XSOverlay! Check the plugin repo releases tab for beta plugin updates/fixes";
         }
         
         var settings = new UiSettings
@@ -166,6 +166,9 @@ public static class Patches
                 break;
             case "KBTwitchSending":
                 PluginSettings.SetSetting<bool>("TwitchSending", value);
+                break;
+            case "KBDisableAffixes":
+                PluginSettings.SetSetting<bool>("DisableAffixes", value);
                 break;
             case "KBOpenRepo":
                 Application.OpenURL("https://github.com/nyakowint/xsoverlay-keyboard-osc");

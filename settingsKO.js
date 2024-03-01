@@ -65,7 +65,7 @@ const SettingsLayout = {
             KBCheckForUpdates: new Ui.Setting(Ui.ComponentType.Toggle, 'Notify about updates', "The plugin will notify you if there's an update available :D", false),
             KBLiveSend: new Ui.Setting(Ui.ComponentType.Toggle, 'Live send mode', "Messages will be sent to the chatbox as you type.", false),
             KBTypingIndicator: new Ui.Setting(Ui.ComponentType.Toggle, 'Send typing indicator', "Some people prefer to not let people know when they are typing. If this is you here ya go!", true),
-            KBAttachmentIndex: new Ui.Setting(Ui.ComponentType.Dropdown, 'Keyboard Attachment', "put the keyboard on ur head idk, attaching to your hand basically makes you one handed lool", 'Disabled', ['Disabled', 'So no head?', 'Left hand', 'Right hand']),
+            TwitchSetup: new Ui.Setting(Ui.ComponentType.Button, 'Setup Twitch', "Setup simultaneous sending to Twitch and OSC", null, null, null),
             KBVersionCheck: new Ui.Setting(Ui.ComponentType.Button, 'Check for updates', "Check for updates rn!!!!!", null, null, null),
             KBOpenRepo: new Ui.Setting(Ui.ComponentType.Button, 'Plugin Repo', "View this plugin's repo on GitHub", null, null, null),
             KBVersion: new Ui.Setting(Ui.ComponentType.Text, 'KBVersion'),

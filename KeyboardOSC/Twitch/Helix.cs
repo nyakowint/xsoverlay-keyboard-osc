@@ -44,8 +44,9 @@ public abstract class Helix
 
         ThreadingHelper.Instance.StartSyncInvoke(() =>
         {
-            Plugin.PluginLogger.LogInfo("Twitch authentication successful!");
-            Tools.SendBread("Success", "Twitch authentication successful!");
+            const string successMsg = "Twitch authentication successful!";
+            Plugin.PluginLogger.LogInfo(successMsg);
+            Tools.SendBread("Success", successMsg);
         });
     }
 

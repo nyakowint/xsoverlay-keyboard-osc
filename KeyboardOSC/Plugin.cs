@@ -19,7 +19,7 @@ namespace KeyboardOSC
     [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", AssemblyVersion)]
     public class Plugin : BaseUnityPlugin
     {
-        public const string AssemblyVersion = "1.2.2.2";
+        public const string AssemblyVersion = "1.2.3.0";
         public static Plugin Instance;
         public static ManualLogSource PluginLogger;
 
@@ -50,7 +50,7 @@ namespace KeyboardOSC
             ModifiedUiSuccess = Tools.DownloadModifiedUi();
 
             if (!Environment.CommandLine.Contains("-batchmode") || IsDebugConfig) return;
-            Logger.LogWarning("XSOverlay runs in batchmode normally (headless, without a window).");
+            Logger.LogWarning("XSOverlay runs in batchmode normally (headless without a window).");
             Logger.LogWarning("To see extended logs launch XSOverlay directly.");
         }
 

@@ -32,12 +32,16 @@ public abstract class Core
                 Logger.LogInfo("Getting twitch auth page...");
                 var authHtml =
                     client.DownloadString(
-                        "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/NO-MORE-NODE/TwitchAuth.html");
+                        "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/NO-MORE-NODE/twitchAuth.html");
+                var authJs =
+                    client.DownloadString(
+                        "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/NO-MORE-NODE/twitchAuth.js");
 
                 var filesPath = $"{Application.streamingAssetsPath}/Plugins/Applications/KeyboardOSC";
                 if (!Directory.Exists(filesPath)) Directory.CreateDirectory(filesPath);
-                Logger.LogInfo($"Writing auth page to: {filesPath}/TwitchAuth.html");
-                File.WriteAllText($"{filesPath}/TwitchAuth.html", authHtml);
+                Logger.LogInfo($"Writing auth page to: {filesPath}/twitchAuth.html and twitchAuth.js");
+                File.WriteAllText($"{filesPath}/twitchAuth.html", authHtml);
+                File.WriteAllText($"{filesPath}/twitchAuth.js", authJs);
             }
             catch (Exception exception)
             {
@@ -46,10 +50,11 @@ public abstract class Core
             }
         }
 
-        var authUrl = $"http://localhost:{port}/apps/KeyboardOSC/TwitchAuth.html";
+        var authUrl = $"http://localhost:{port}/apps/KeyboardOSC/twitchAuth.html";
         Application.OpenURL(authUrl);
-        Logger.LogInfo("Twitch auth started; Check your browser!");
-        Tools.SendBread("Twitch auth started; Check your browser!");
+        const string confirmMsg = "Twitch auth started; Check your browser!";
+        Logger.LogInfo(confirmMsg);
+        Tools.SendBread(confirmMsg);
     }
 
     public static void SettingsCallback(string settingName, string value)
