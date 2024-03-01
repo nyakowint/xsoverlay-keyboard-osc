@@ -1,9 +1,9 @@
 # XSOverlay Keyboard OSC
 
 > [!NOTE]
-> This is a third-party modification to [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/). Use at your
-> own discretion \
-> Last tested with [beta] build 659. It should work on any recent version.
+> This is a third-party modification to [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/). 
+> There is no official plugin support yet. \
+> Last tested with [beta] build 665. It should work on any recent version.
 
 - Installation: [Automatic](#how-to-install) or [Manual](#manual-installation)
 - [Usage instructions](#how-to-use)
@@ -26,9 +26,9 @@ If you're having trouble, try [manually installing](#manual-installation) with t
 1. Enable OSC. For VRChat you can find this in the Action Menu (Options > OSC > Enabled)
 2. Open the XSOverlay keyboard
 3. Press the message icon on the right hand side of the keyboard, under the lock button
-4. congration you done it - Check out the [shortcut keys](#shortcut-keys)!
+4. Congrats! Type away
 
-Optionally open XSOverlay Settings (Settings > KeyboardOSC) and change them to your liking \
+Optionally open Settings (Settings > KeyboardOSC) and change them to your liking \
 (this may break with an update, you can go back with the tab under bindings)
 
 > [!NOTE]
@@ -74,10 +74,22 @@ Use the following shortcut keys:
 | <kbd>CTRL</kbd> + <kbd>C</kbd> | Copy current text to clipboard
 | <kbd>CTRL</kbd> + <kbd>V</kbd> | Paste text from your clipboard
 | <kbd>CTRL</kbd> + <kbd>Backspace</kbd> | Delete last word (experimental)
+| <kbd>PAUSE (BREAK)</kbd> | Toggle twitch
 | <kbd>ENTER</kbd> | Send message to the chatbox!
 
 I cannot guarantee full functionality with the CVR chatbox mod, as this is built with VRChat's OSC routes in mind. They
 were identical last I checked.
+
+## Twitch Setup
+- Go to [Twitch Developer Console](https://dev.twitch.tv/console) and create an Application
+- Set the redirect URI to `http://localhost:<WEB PORT>/apps/KeyboardOSC/twitchAuth.html`
+  - Web port is usually WebSocketPort + 1 (if you didnt change it, it's currently `42071`) 
+- Select Confidential for Client Type
+- Go to Settings > KeyboardOSC
+- Press the Twitch setup button
+- In the webpage fill in your Client ID and Client Secret from Twitch Dev then press Authorize on both pages
+- If everything works out (hopefully) you should get a toast message saying it's successful
+  - Quickly toggle the "twitch sending" setting by pressing the pausebreak key if needed
 
 ## Troubleshooting
 
@@ -86,29 +98,22 @@ non-issue.
 
 If you can't seem to get OSC to work, try one of these:
 
-- Change the OSC port used by XSOverlay, look @ [their docs](https://xiexe.github.io/XSOverlayDocumentation/#/OSCAPI) (
+- Change the OSC port used by XSOverlay, instructions how to do this -> > [XSOverlay Docs](https://xsoverlay.vercel.app/commonissues#ports-bindings) < (
   it does not use OSCQuery as of writing, so this is probably your issue)
 - Reset your OSC config?
 
 If this plugin's settings dont show up in the menu, it's likely:
 
 - You are using a custom theme and it is conflicting somehow. As of writing this update is not fully out and i have no
-  way of testing it lmfao
+  way of testing it lmao
 - Either your XSOverlay or Plugin are outdated
 - something else, bug me about it or fix urself idk
 
-If you still need help you can find me in my dev [discord](https://discord.gg/BrUacrw4cy)
+If you still need help you can find me in my [dev discord](https://discord.gg/BrUacrw4cy)
 
 ## Build from source
 
 Check the .csproj or actions workflow
 
 but if you wanna build this just drop the necessary dlls from `XSOverlay_Data/Managed` into `refs`, restore and build w/
-Release
-config. dll will be in `builds` folder
-
-### Motivation
-
-- vrchat's keyboard is very buggy and likes to malfunction or just not work very often
-- ovr toolkit has been hella laggy everytime i have come back to use it
-- ur a nerd lol
+Release config. dll will be in `builds` folder
