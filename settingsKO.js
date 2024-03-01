@@ -526,12 +526,10 @@ function SetMenuStates(data) {
 
     var appVersionText = document.getElementById("VersionNumber_Desc");
     appVersionText.innerHTML = `Build ${data.VersionNumber}`;
-
-    console.log(data)
-
+    
     if (data.KBVersion) {
         var kbVersion = document.getElementById("KBVersion_Desc");
-        kbVersion.innerHTML = `KeyboardOSC Version ${data.KBVersion}`;
+        kbVersion.innerHTML = `Version ${data.KBVersion}`;
     }
 
     console.log("Settings Updated.");
