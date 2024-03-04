@@ -112,27 +112,27 @@ public static class ChatMode
                 {
                     Logger.LogInfo($"Sending message: {_currentText.ReplaceShortcodes()} [ls]");
                     _lastMsg = _currentText;
-                    SendMessage(true);
                     if (Core.IsTwitchSendingEnabled && !_isSilentMsg)
                     {
                         var affixes = Core.GetAffixes();
+                        var currentText = _currentText.ReplaceShortcodes();
+                        SendMessage(true);
                         Task.Run(() =>
                         {
-                            Helix.SendTwitchMessage(
-                                $"{affixes.Item1} {_currentText.ReplaceShortcodes()} {affixes.Item2}");
+                            Helix.SendTwitchMessage($"{affixes.Item1} {currentText} {affixes.Item2}");
                             ThreadingHelper.Instance.StartSyncInvoke(ClearInput);
                         });
                     }
                     else
                     {
-                        ClearInput();   
+                        SendMessage(true);
+                        ClearInput();
                     }
                 }
                 else
                 {
                     Logger.LogInfo($"Sending message: {_currentText.ReplaceShortcodes()}");
                     SendMessage();
-                    ClearInput();
                 }
 
                 return;
@@ -182,8 +182,9 @@ public static class ChatMode
             if (Core.IsTwitchSendingEnabled && !_isSilentMsg)
             {
                 var affixes = Core.GetAffixes();
+                var currentText = _currentText.ReplaceShortcodes();
                 Task.Run(() =>
-                    Helix.SendTwitchMessage($"{affixes.Item1} {_currentText.ReplaceShortcodes()} {affixes.Item2}"));
+                    Helix.SendTwitchMessage($"{affixes.Item1} {currentText} {affixes.Item2}"));
             }
 
             _lastMsg = _currentText;
