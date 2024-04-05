@@ -171,7 +171,7 @@ public static class ChatMode
         if (liveSend)
         {
             _eventsTimer.Stop();
-            Tools.SendOsc("/chatbox/input", _currentText.ReplaceShortcodes(), true, _isFirstMsg || !_isSilentMsg);
+            Tools.SendOsc("/chatbox/input", _currentText.ReplaceShortcodes(), true, !_isSilentMsg);
             SendTyping(false);
             _isFirstMsg = false;
         }
