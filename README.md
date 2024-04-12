@@ -3,7 +3,7 @@
 > [!NOTE]
 > This is a third-party modification to [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/). 
 > There is no official plugin support yet. \
-> Last tested with [beta] build 665. It should work on any recent version.
+> Last tested with build 667. It should work on any recent version.
 
 - Installation: [Automatic](#how-to-install) or [Manual](#manual-installation)
 - [Usage instructions](#how-to-use)
