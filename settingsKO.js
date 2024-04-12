@@ -1,5 +1,7 @@
-import { root, Socket, XSOServerMessage, ConnectToServer, SendCommand, DecodeMessage, SetGlobalThemeVariables, Commands } from './common.js';
-import * as SettingsElements from './settingsElements.js';
+import * as Api from '../../../../_Shared/api.js';
+import * as OpenVR from '../../../../_Shared/openvrapi.js';
+import * as Common from '../js/common.js';
+import * as Ui from '../js/uiComponents.js';
 window.Initialize = Initialize;
 
 const ui_canvas = {
@@ -55,163 +57,167 @@ function UIPage(name, sections, uiRoot) {
 const SettingsLayout = {
     Original_Settings: {
         _: {
-            GoToOgSettings: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Go to original Settings', "Press this, then reopen settings if the settings shown here are not up to date yet. You will have to restart XSOverlay to get back here!", '', '', '')
+            GoToOgSettings: new Ui.Setting(Ui.ComponentType.Button, 'Go to original Settings', "Press this, then reopen settings if the settings shown here are not up to date yet. You will have to restart XSOverlay to get back here!", null, null, null)
         }
     },
     Keyboard_OSC: {
         _: {
-            KBCheckForUpdates: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Notify about updates', "The plugin will notify you if there's an update available :D", false),
-            KBLiveSend: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Live send mode', "Messages will be sent to the chatbox as you type.", false),
-            KBTypingIndicator: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Send typing indicator', "Some people prefer to not let people know when they are typing. If this is you here ya go!", true),
-            KBAttachmentIndex: new SettingsElements.Setting(SettingsElements.UIComponents.Dropdown, 'Keyboard Attachment', "put the keyboard on ur head idk, attaching to your hand basically makes you one handed lool", 'Disabled', ['Disabled', 'So no head?', 'Left hand', 'Right hand']),
-            KBVersionCheck: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Check for updates', "Check for updates rn!!!!!", '', '', ''),
-            KBOpenRepo: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Plugin Repo', "View this plugin's repo on GitHub", '', '', ''),
-            KBVersion: new SettingsElements.Setting(SettingsElements.UIComponents.Text, 'KBVersion'),
+            KBCheckForUpdates: new Ui.Setting(Ui.ComponentType.Toggle, 'Notify about updates', "The plugin will notify you if there's an update available :D", false),
+            KBLiveSend: new Ui.Setting(Ui.ComponentType.Toggle, 'Live send mode', "Messages will be sent to the chatbox as you type.", false),
+            KBTypingIndicator: new Ui.Setting(Ui.ComponentType.Toggle, 'Send typing indicator', "Some people prefer to not let people know when they are typing. If this is you here ya go!", true),
+            KBVersionCheck: new Ui.Setting(Ui.ComponentType.Button, 'Check for updates', "Check for updates rn!!!!!", null, null, null),
+            KBOpenRepo: new Ui.Setting(Ui.ComponentType.Button, 'Plugin Repo', "View this plugin's repo on GitHub", null, null, null),
+            OpenPluginList: new Ui.Setting(Ui.ComponentType.Button, 'xso plugin app list', "testing stuff requires extra dll", null, null, null),
+            KBVersion: new Ui.Setting(Ui.ComponentType.Text, 'KBVersion'),
         },
+        Twitch: {
+            KBTwitchSending: new Ui.Setting(Ui.ComponentType.Toggle, 'Twitch sending', "Let chat know what you're saying in the chatbox", false),
+            KBDisableAffixes: new Ui.Setting(Ui.ComponentType.Toggle, 'Disable prefix/suffix', "some convention to use tags for msgs not directed at viewer", false),
+            TwitchSetup: new Ui.Setting(Ui.ComponentType.Button, 'Open Twitch Setup Page', "Open page to authorize for Twitch sending", null, null, null),
+        }
     },
     General: {
         XSOverlay: {
-            AllowAdminPermissions: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Allow Admin Permissions', "desc", false),
+            AllowAdminPermissions: new Ui.Setting(Ui.ComponentType.Toggle, 'Allow Admin Permissions', "desc", false),
         },
         Accessibility: {
-            DominantHand: new SettingsElements.Setting(SettingsElements.UIComponents.Dropdown, 'Dominant Hand', "", 'Right', ['Right', 'Left']),
-            Language: new SettingsElements.Setting(SettingsElements.UIComponents.Dropdown, 'Language', "description", 'English', ['English']),
-            Crowdin: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Crowdin', "", 'box-arrow-up-right', null, 'https://crowdin.com/project/xsoverlay-public'),
+            DominantHand: new Ui.Setting(Ui.ComponentType.Dropdown, 'Dominant Hand', "", 'Right', ['Right', 'Left']),
+            Language: new Ui.Setting(Ui.ComponentType.Dropdown, 'Language', "description", 'English', ['English']),
+            Crowdin: new Ui.Setting(Ui.ComponentType.Button, 'Crowdin', "", 'box-arrow-up-right', null, null),
         },
         Mouse: {
-            InputMethod: new SettingsElements.Setting(SettingsElements.UIComponents.Dropdown, 'Input Method', "", 'MouseEmulation', ['TouchInput', 'MouseEmulation']),
-            AutomaticMouseControl: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Automatic Mouse Control', "", false, null, null, new SettingsElements.ParentSetting('InputMethod', 1)),
-            DoubleClickDelay: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Double Click Delay', "", 0.25, [0, 1, 0.01], 'ms', new SettingsElements.ParentSetting('InputMethod', 1)),
-            PointerScale: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Pointer Scale', "", 1, [0.25, 1, 0.05], '%')
+            InputMethod: new Ui.Setting(Ui.ComponentType.Dropdown, 'Input Method', "", 'MouseEmulation', ['TouchInput', 'MouseEmulation']),
+            AutomaticMouseControl: new Ui.Setting(Ui.ComponentType.Toggle, 'Automatic Mouse Control', "", false, null, null, new Ui.ParentSetting('InputMethod', 1)),
+            DoubleClickDelay: new Ui.Setting(Ui.ComponentType.Slider, 'Double Click Delay', "", 0.25, [0, 1, 0.01], 'ms', new Ui.ParentSetting('InputMethod', 1)),
+            PointerScale: new Ui.Setting(Ui.ComponentType.Slider, 'Pointer Scale', "", 1, [0.25, 1, 0.05], '%')
         },
         User_Interface: {
-            HideTooltips: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Hide Tooltips', "", false),
+            HideTooltips: new Ui.Setting(Ui.ComponentType.Toggle, 'Hide Tooltips', "", false),
         },
         Miscellaneous: {
-            DiscordRichPresence: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Discord Rich Presence', "", true),
-            LowBatterySound: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Low Battery Sound', "", true),
-            LowBatteryWarningPercent: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Low Battery Warning Percent', "", 15, [5, 25, 1], '%'),
-            HapticsStrength: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Haptic Feedback', "", 1, [0, 1, 0.01], '%')
+            DiscordRichPresence: new Ui.Setting(Ui.ComponentType.Toggle, 'Discord Rich Presence', "", true),
+            LowBatterySound: new Ui.Setting(Ui.ComponentType.Toggle, 'Low Battery Sound', "", true),
+            LowBatteryWarningPercent: new Ui.Setting(Ui.ComponentType.Slider, 'Low Battery Warning Percent', "", 15, [5, 25, 1], '%'),
+            HapticsStrength: new Ui.Setting(Ui.ComponentType.Slider, 'Haptic Feedback', "", 1, [0, 1, 0.01], '%')
         },
         Analytics: {
-            SendAnalytics: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Send Analytics',
+            SendAnalytics: new Ui.Setting(Ui.ComponentType.Toggle, 'Send Analytics',
                 "Data sent is completely anonymous and not tied to you as an individual, and is not considered as \"personally identifiable.\" ; Data collected goes towards making the software better. <br><br>Data includes:<br> - System Specs<br> - HMD Model<br> - Changed Settings<br> - Error / Crash Reporting<br> - VR Application<br> - Startup / Shutdown",
                 true),
         },
         _: {
-            VersionNumber: new SettingsElements.Setting(SettingsElements.UIComponents.Text, 'VersionNumber'),
+            VersionNumber: new Ui.Setting(Ui.ComponentType.Text, 'VersionNumber'),
         },
     },
     Overlays: {
         Capture: {
-            CaptureMethod: new SettingsElements.Setting(SettingsElements.UIComponents.Dropdown, 'Window Capture API', "", 'Windows Graphics Capture', ['WindowsGraphicsCapture', 'BitBlt']),
-            // ShowWindowPreviews: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Show Window Thumbnails', true) NOTE:: DEPRECATED
+            CaptureMethod: new Ui.Setting(Ui.ComponentType.Dropdown, 'Window Capture API', "", 'Windows Graphics Capture', ['WindowsGraphicsCapture', 'BitBlt']),
         },
         Overlay_Behavior: {
-            AutoRecenter: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Auto Recenter', "", true),
-            InvertScaleGesture: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Invert Scale Gesture', "", false),
+            AutoRecenter: new Ui.Setting(Ui.ComponentType.Toggle, 'Auto Recenter', "", true),
+            InvertScaleGesture: new Ui.Setting(Ui.ComponentType.Toggle, 'Invert Scale Gesture', "", false),
         },
         Overlay_Display: {
-            CurvedOverlays: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Curved Overlays', "", true),
-            OverlayCurveBias: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Overlay Curve Bias', "", 1.5, [0.1, 5, 0.01], null, new SettingsElements.ParentSetting('CurvedOverlays', true)),
-            OverlayClipAngle: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Overlay Clip Angle', "", 68, [0, 180, 1], '°'),
-            OverlayDefaultScale: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Default Scale', "", 1, [0, 1, 0.01], '%'),
-            OverlayDefaultOpacity: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Default Opacity', "", 1, [0, 1, 0.01], '%'),
-            OverlayDefaultMinFPS: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Default Min FPS', "", 30, [1, 144, 1], 'FPS'),
-            OverlayDefaultMaxFPS: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Default Max FPS', "", 60, [1, 144, 1], 'FPS'),
+            CurvedOverlays: new Ui.Setting(Ui.ComponentType.Toggle, 'Curved Overlays', "", true),
+            OverlayCurveBias: new Ui.Setting(Ui.ComponentType.Slider, 'Overlay Curve Bias', "", 1.5, [0.1, 5, 0.01], null, new Ui.ParentSetting('CurvedOverlays', true)),
+            OverlayClipAngle: new Ui.Setting(Ui.ComponentType.Slider, 'Overlay Clip Angle', "", 68, [0, 180, 1], '°'),
+            OverlayDefaultScale: new Ui.Setting(Ui.ComponentType.Slider, 'Default Scale', "", 1, [0, 1, 0.01], '%'),
+            OverlayDefaultOpacity: new Ui.Setting(Ui.ComponentType.Slider, 'Default Opacity', "", 1, [0, 1, 0.01], '%'),
+            OverlayDefaultMinFPS: new Ui.Setting(Ui.ComponentType.Slider, 'Default Min FPS', "", 30, [1, 144, 1], 'FPS'),
+            OverlayDefaultMaxFPS: new Ui.Setting(Ui.ComponentType.Slider, 'Default Max FPS', "", 60, [1, 144, 1], 'FPS'),
         },
         Overlay_Movement_and_Handling: {
-            AimTarget: new SettingsElements.Setting(SettingsElements.UIComponents.Dropdown, 'Target', "", 'Mixed', ['Mixed', 'HMD', 'Controller']),
-            AimAtTarget: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Aim At Target', "", true),
-            GrabSensitivity: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Grab Sensitivity', "", 0.3, [0, 1, 0.01], '%'),
-            PushSpeed: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Push Pull Speed', "", 0.03, [0, 0.2, 0.01]),
-            ScaleSpeed: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Scale Speed', "", 3, [1, 6, 0.01]),
-            PositionDampening: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Position Dampening', "", 15, [1, 100, 1]),
-            RotationDampening: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Rotation Dampening', "", 15, [1, 100, 1]),
-            SmartRollAngle: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Smart Roll Angle', "", 50, [10, 180, 1], '°')
+            AimTarget: new Ui.Setting(Ui.ComponentType.Dropdown, 'Target', "", 'Mixed', ['Mixed', 'HMD', 'Controller']),
+            AimAtTarget: new Ui.Setting(Ui.ComponentType.Toggle, 'Aim At Target', "", true),
+            GrabSensitivity: new Ui.Setting(Ui.ComponentType.Slider, 'Grab Sensitivity', "", 0.3, [0, 1, 0.01], '%'),
+            PushSpeed: new Ui.Setting(Ui.ComponentType.Slider, 'Push Pull Speed', "", 0.03, [0, 0.2, 0.01]),
+            ScaleSpeed: new Ui.Setting(Ui.ComponentType.Slider, 'Scale Speed', "", 3, [1, 6, 0.01]),
+            PositionDampening: new Ui.Setting(Ui.ComponentType.Slider, 'Position Dampening', "", 15, [1, 100, 1]),
+            RotationDampening: new Ui.Setting(Ui.ComponentType.Slider, 'Rotation Dampening', "", 15, [1, 100, 1]),
+            SmartRollAngle: new Ui.Setting(Ui.ComponentType.Slider, 'Smart Roll Angle', "", 50, [10, 180, 1], '°')
         },
     },
     Wrist: {
         Wrist_Overlay: {
-            AllowWristMovement: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Allow Movement', "", true),
-            HideWristOverlay: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Hide Wrist Overlay', "", false),
-            WristOpacity: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Opacity', "", 1, [0.1, 1, 0.01], '%'),
-            WristClipAngle: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Clip Angle', "", 60, [10, 180, 1], '°'),
-            ResetWristPosition: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Reset Wrist Position', "", '', '', ''),
+            AllowWristMovement: new Ui.Setting(Ui.ComponentType.Toggle, 'Allow Movement', "", true),
+            HideWristOverlay: new Ui.Setting(Ui.ComponentType.Toggle, 'Hide Wrist Overlay', "", false),
+            WristOpacity: new Ui.Setting(Ui.ComponentType.Slider, 'Opacity', "", 1, [0.1, 1, 0.01], '%'),
+            WristClipAngle: new Ui.Setting(Ui.ComponentType.Slider, 'Clip Angle', "", 60, [10, 180, 1], '°'),
+            ResetWristPosition: new Ui.Setting(Ui.ComponentType.Button, 'Reset Wrist Position', "", '', '', ''),
         },
         Date_and_Time:
-        {
-            ContinentalTimeFormat: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, '24 Hour Clock', "", false),
-            DateFormat: new SettingsElements.Setting(SettingsElements.UIComponents.Dropdown, 'Date Format', "", 'DD / MM / YY', ['DD / MM / YY', 'MM / DD / YY', 'YY / MM / DD'])
-        },
+            {
+                ContinentalTimeFormat: new Ui.Setting(Ui.ComponentType.Toggle, '24 Hour Clock', "", false),
+                DateFormat: new Ui.Setting(Ui.ComponentType.Dropdown, 'Date Format', "", 'DD / MM / YY', ['DD / MM / YY', 'MM / DD / YY', 'YY / MM / DD'])
+            },
         Battery_Widget: {
-            AlwaysShowDetailedInformation: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Always Show Details', "", false),
-            DefaultShowBatteryPercentage: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Show Percentage by Default', "", true),
-            BatteryFontScale: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Battery Font Size', "", 16, [12, 24, 1], 'px')
+            AlwaysShowDetailedInformation: new Ui.Setting(Ui.ComponentType.Toggle, 'Always Show Details', "", false),
+            DefaultShowBatteryPercentage: new Ui.Setting(Ui.ComponentType.Toggle, 'Show Percentage by Default', "", true),
+            BatteryFontScale: new Ui.Setting(Ui.ComponentType.Slider, 'Battery Font Size', "", 16, [12, 24, 1], 'px')
         },
         Media_Player: {
-            AutoMediaDetection: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Smart Media Controls', "", false),
+            AutoMediaDetection: new Ui.Setting(Ui.ComponentType.Toggle, 'Smart Media Controls', "", false),
         }
     },
     Theme: {
         Base_Theme: {
-            UseDarkTheme: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Dark Mode', "", true),
-            AdaptiveColor: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Adaptive Color Strength', "", 0.1, [0, 1, 0.01], '%'),
-            MediaThemeing: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Media Themeing', "", false),
+            UseDarkTheme: new Ui.Setting(Ui.ComponentType.Toggle, 'Dark Mode', "", true),
+            AdaptiveColor: new Ui.Setting(Ui.ComponentType.Slider, 'Adaptive Color Strength', "", 0.1, [0, 1, 0.01], '%'),
+            MediaThemeing: new Ui.Setting(Ui.ComponentType.Toggle, 'Media Themeing', "", false),
         },
         Accent_Color: {
-            AccentColorR: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Red Amount', "", 0.2, [0, 1, 0.01], '%'),
-            AccentColorG: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Green Amount', "", 0.82, [0, 1, 0.01], '%'),
-            AccentColorB: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Blue Amount', "", 0.4, [0, 1, 0.01], '%'),
+            AccentColorR: new Ui.Setting(Ui.ComponentType.Slider, 'Red Amount', "", 0.2, [0, 1, 0.01], '%'),
+            AccentColorG: new Ui.Setting(Ui.ComponentType.Slider, 'Green Amount', "", 0.82, [0, 1, 0.01], '%'),
+            AccentColorB: new Ui.Setting(Ui.ComponentType.Slider, 'Blue Amount', "", 0.4, [0, 1, 0.01], '%'),
         },
     },
     Notifications: {
         Appearance: {
-            NotificationScale: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Scale', "", 0.25, [0.1, 2, 0.001]),
-            NotificationPositionX: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Position X', "", 0, [-2, 2, 0.001]),
-            NotificationPositionY: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Position Y', "", -0.125, [-2, 2, 0.001]),
-            NotificationPositionZ: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Position Z', "", 0.55, [-2, 2, 0.001]),
-            SmallNotificationTest: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Test Small', "", '', '', ''),
-            LargeNotificationTest: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Test Large', "", '', '', ''),
+            NotificationScale: new Ui.Setting(Ui.ComponentType.Slider, 'Scale', "", 0.25, [0.1, 2, 0.001]),
+            NotificationPositionX: new Ui.Setting(Ui.ComponentType.Slider, 'Position X', "", 0, [-2, 2, 0.001]),
+            NotificationPositionY: new Ui.Setting(Ui.ComponentType.Slider, 'Position Y', "", -0.125, [-2, 2, 0.001]),
+            NotificationPositionZ: new Ui.Setting(Ui.ComponentType.Slider, 'Position Z', "", 0.55, [-2, 2, 0.001]),
+            SmallNotificationTest: new Ui.Setting(Ui.ComponentType.Button, 'Test Small', "", '', '', ''),
+            LargeNotificationTest: new Ui.Setting(Ui.ComponentType.Button, 'Test Large', "", '', '', ''),
         }
     },
     Experimental: {
         Experimental_Settings: {
-            ForceHigherQualityOverlays: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Force High Quality Overlays', "Forces SteamVR to scale the compositor layer to 125% render scale. <br>This requires a restart of SteamVR.", false),
-            BlockInputToBackgroundApplication: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Block Inputs To Background App', "Blocks all input to background applications when focusing any overlay.", false),
-            InputBlockingBehavior: new SettingsElements.Setting(SettingsElements.UIComponents.Dropdown, 'Blocking Behavior', "", 'LayoutMode', ['Hover', 'LayoutMode'], null, new SettingsElements.ParentSetting('BlockInputToBackgroundApplication', true)),
+            ForceHigherQualityOverlays: new Ui.Setting(Ui.ComponentType.Toggle, 'Force High Quality Overlays', "Forces SteamVR to scale the compositor layer to 125% render scale. <br>This requires a restart of SteamVR.", false),
+            BlockInputToBackgroundApplication: new Ui.Setting(Ui.ComponentType.Toggle, 'Block Inputs To Background App', "Blocks all input to background applications when focusing any overlay.", false),
+            InputBlockingBehavior: new Ui.Setting(Ui.ComponentType.Dropdown, 'Blocking Behavior', "", 'LayoutMode', ['Hover', 'LayoutMode'], null, new Ui.ParentSetting('BlockInputToBackgroundApplication', true)),
         }
     },
     Night_Light: {
         _: {
-            NightLight: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Enable Night Light', "", false),
-            NightLightIntensity: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Intensity', "", 0.5, [0, 1, 0.01], '%')
+            NightLight: new Ui.Setting(Ui.ComponentType.Toggle, 'Enable Night Light', "", false),
+            NightLightIntensity: new Ui.Setting(Ui.ComponentType.Slider, 'Intensity', "", 0.5, [0, 1, 0.01], '%')
         },
         Schedule: {
-            NightLightSchedule: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Use Schedule', "", false),
-            NightLightStartHour: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'Start Time', "", 0.5, [1, 12, 1], null, new SettingsElements.ParentSetting('NightLightSchedule', true)),
-            NightLightStartAMPM: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'AM - PM', "", null, null, null, new SettingsElements.ParentSetting('NightLightSchedule', true)),
-            NightLightEndHour: new SettingsElements.Setting(SettingsElements.UIComponents.Slider, 'End Time', "", 0.5, [1, 12, 1], null, new SettingsElements.ParentSetting('NightLightSchedule', true)),
-            NightLightEndAMPM: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'AM - PM', "", null, null, null, new SettingsElements.ParentSetting('NightLightSchedule', true)),
+            NightLightSchedule: new Ui.Setting(Ui.ComponentType.Toggle, 'Use Schedule', "", false),
+            NightLightStartHour: new Ui.Setting(Ui.ComponentType.Slider, 'Start Time', "", 0.5, [1, 12, 1], null, new Ui.ParentSetting('NightLightSchedule', true)),
+            NightLightStartAMPM: new Ui.Setting(Ui.ComponentType.Toggle, 'AM - PM', "", null, null, null, new Ui.ParentSetting('NightLightSchedule', true)),
+            NightLightEndHour: new Ui.Setting(Ui.ComponentType.Slider, 'End Time', "", 0.5, [1, 12, 1], null, new Ui.ParentSetting('NightLightSchedule', true)),
+            NightLightEndAMPM: new Ui.Setting(Ui.ComponentType.Toggle, 'AM - PM', "", null, null, null, new Ui.ParentSetting('NightLightSchedule', true)),
         }
     },
     Easter_Eggs: {
         Why_Are_They_Called_Easter_Eggs: {
-            EasterEggBee: new SettingsElements.Setting(SettingsElements.UIComponents.Toggle, 'Beeeeeeeeeeeeeeeee!!!!', "", false, null, null, null, new SettingsElements.ParentAchievement('SUMMONBEE', true))
+            EasterEggBee: new Ui.Setting(Ui.ComponentType.Toggle, 'Beeeeeeeeeeeeeeeee!!!!', "", false, null, null, null, new Ui.ParentAchievement('SUMMONBEE', true))
         },
     },
     Support: {
         Support_Links: {
-            Documentation: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Docs', "", 'xsoverlay', 'styled', 'https://xiexe.github.io/XSOverlayDocumentation/#/'),
-            Discord: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Discord', "", 'discord', 'styled', 'https://discord.gg/AV4V5hB'),
-            Twitter: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Twitter', "", 'twitter', 'styled', 'https://twitter.com/XiexeVR'),
-            Github: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Github', "", 'github', 'styled', 'https://github.com/Xiexe/XSOverlay-Issue-Tracker/issues/new/choose'),
-            Steam: new SettingsElements.Setting(SettingsElements.UIComponents.Button, 'Steam', "", 'steam', 'styled', 'https://steamcommunity.com/app/1173510/discussions/'),
+            Documentation: new Ui.Setting(Ui.ComponentType.Button, 'Docs', "", 'xsoverlay', 'styled', null),
+            Discord: new Ui.Setting(Ui.ComponentType.Button, 'Discord', "", 'discord', 'styled', null),
+            Twitter: new Ui.Setting(Ui.ComponentType.Button, 'Twitter', "", 'twitter', 'styled', null),
+            Github: new Ui.Setting(Ui.ComponentType.Button, 'Github', "", 'github', 'styled', null),
+            Steam: new Ui.Setting(Ui.ComponentType.Button, 'Steam', "", 'steam', 'styled', null),
         }
     },
     Bindings: {
         _: {
-            Bindings: new SettingsElements.Setting(SettingsElements.UIComponents.Text, 'Bindings', "description"),
+            Bindings: new Ui.Setting(Ui.ComponentType.Text, 'Bindings', "description"),
         }
     }
 }
@@ -221,13 +227,12 @@ const Settings = {
 };
 
 function Initialize(name) {
-    
     ui_canvas.pageRoot = document.getElementById('uiContainer');
-    ui_canvas.uiRoot = SettingsElements.InstantiateUiElement(ui_canvas.pageRoot, SettingsElements.UITypes.div, ['background', 'theme-dark']);
-    ui_canvas.pageContainer = SettingsElements.InstantiateUiElement(ui_canvas.uiRoot, SettingsElements.UITypes.div, ['page-wrapper', 'absolute']);
+    ui_canvas.uiRoot = Ui.CreateElement(ui_canvas.pageRoot, Ui.HtmlType.div, ['background', 'theme-dark']);
+    ui_canvas.pageContainer = Ui.CreateElement(ui_canvas.uiRoot, Ui.HtmlType.div, ['page-wrapper', 'absolute']);
     InitializeUI();
-    ConnectToServer(name);
-    SetupSocketListeners();
+    Api.Connect(name);
+    SubscribeToApiEvents();
 }
 
 function InitializeUI() {
@@ -237,13 +242,13 @@ function InitializeUI() {
 }
 
 function PopulateSidebar() {
-    ui_canvas.sidebar = SettingsElements.InstantiateUiElement(ui_canvas.uiRoot, SettingsElements.UITypes.div, ['side-bar', 'theme-mid', 'absolute']);
-    ui_canvas.sidebar_selector = SettingsElements.InstantiateUiElement(ui_canvas.sidebar, SettingsElements.UITypes.div, ['side-bar-selector', 'absolute']);
-    sidebar.s_list = SettingsElements.InstantiateUiElement(ui_canvas.sidebar, SettingsElements.UITypes.div, ['side-bar-button-container']);
+    ui_canvas.sidebar = Ui.CreateElement(ui_canvas.uiRoot, Ui.HtmlType.div, ['side-bar', 'theme-mid', 'absolute']);
+    ui_canvas.sidebar_selector = Ui.CreateElement(ui_canvas.sidebar, Ui.HtmlType.div, ['side-bar-selector', 'absolute']);
+    sidebar.s_list = Ui.CreateElement(ui_canvas.sidebar, Ui.HtmlType.div, ['side-bar-button-container']);
 
     var i = 0;
     Object.keys(sidebarButtons).forEach(function (key) {
-        sidebarButtons[key] = SettingsElements.InstantiateUiElement(sidebar.s_list, SettingsElements.UITypes.button, ['side-bar-button']);
+        sidebarButtons[key] = Ui.CreateElement(sidebar.s_list, Ui.HtmlType.button, ['side-bar-button']);
 
         sidebarButtons[key].addEventListener("click", function (e) {
             setTimeout(function () { sidebarButtons[key].blur(); }, 150); //deselect button
@@ -252,32 +257,32 @@ function PopulateSidebar() {
         });
 
 
-        var icon = SettingsElements.InstantiateUiElement(sidebarButtons[key], SettingsElements.UITypes.img, ['side-bar-button-icon', 'theme-font-contrast']);
+        var icon = Ui.CreateElement(sidebarButtons[key], Ui.HtmlType.img, ['side-bar-button-icon', 'theme-font-contrast']);
         icon.classList.add(`bi-${sidebarButtonIconNames[i]}`);
 
-        var text = SettingsElements.InstantiateUiElement(sidebarButtons[key], SettingsElements.UITypes.div, ['side-bar-button-text']);
+        var text = Ui.CreateElement(sidebarButtons[key], Ui.HtmlType.div, ['side-bar-button-text']);
         text.innerHTML = key.replaceAll('_', ' ');
         text.setAttribute('translationKey', key);
 
         i++;
 
         if (i < Object.keys(sidebarButtons).length)
-            SettingsElements.Divider(sidebar.s_list, 'sidebar-divider');
+            Ui.Divider(sidebar.s_list, 'sidebar-divider');
     });
 }
 
 function CreateUIPages() {
     for (var pageLayout in SettingsLayout) {
-        var uiRoot = SettingsElements.InstantiateUiElement(ui_canvas.pageContainer, SettingsElements.UITypes.div, ['page-container', 'theme-dark']);
+        var uiRoot = Ui.CreateElement(ui_canvas.pageContainer, Ui.HtmlType.div, ['page-container', 'theme-dark']);
         uiRoot.setAttribute('id', `Page_${pageLayout}`);
 
-        var pageHeader = SettingsElements.InstantiateUiElement(uiRoot, SettingsElements.UITypes.div, ['page-header']);
-        var pageHeaderText = SettingsElements.InstantiateUiElement(pageHeader, SettingsElements.UITypes.div, ['page-header-text']);
+        var pageHeader = Ui.CreateElement(uiRoot, Ui.HtmlType.div, ['page-header']);
+        var pageHeaderText = Ui.CreateElement(pageHeader, Ui.HtmlType.div, ['page-header-text']);
         pageHeaderText.innerHTML = `${pageLayout.replaceAll('_', ' ')}`
         pageHeaderText.setAttribute('translationKey', pageLayout);
 
         if (pageLayout == 'Theme') {
-            SettingsElements.InstantiateUiElement(uiRoot, SettingsElements.UITypes.div, ['background-splash']);
+            Ui.CreateElement(uiRoot, Ui.HtmlType.div, ['background-splash']);
             uiRoot.classList.replace('page-container', 'page-container-no-overflow')
         }
 
@@ -287,7 +292,7 @@ function CreateUIPages() {
             var numOfSettings = Object.keys(settingsLayout).length;
             var sectionTitle = sectionLayout;
 
-            var createdSection = new SettingsElements.Section(sectionTitle, numOfSettings, uiRoot);
+            var createdSection = new Ui.Section(sectionTitle, numOfSettings, uiRoot);
             sections.push(createdSection);
 
             var index = 0;
@@ -303,34 +308,34 @@ function CreateUIPages() {
                 settingDefinition.sectionID = sectionTitle;
 
                 switch (type) {
-                    case SettingsElements.UIComponents.Text:
-                        SettingsElements.Description(createdSection.Background, desc, `${settingDefinition.internalName}_Desc`);
+                    case Ui.ComponentType.Text:
+                        Ui.Description(createdSection.Background, desc, `${settingDefinition.internalName}_Desc`);
                         break;
 
-                    case SettingsElements.UIComponents.Button:
-                        SettingsElements.Button(settingDefinition, createdSection.Background);
+                    case Ui.ComponentType.Button:
+                        Ui.Button(settingDefinition, createdSection.Background);
                         break;
 
-                    case SettingsElements.UIComponents.Toggle:
-                        SettingsElements.Toggle(settingDefinition, name, defaultState, opts, createdSection.Background);
+                    case Ui.ComponentType.Toggle:
+                        Ui.Toggle(settingDefinition, name, defaultState, opts, createdSection.Background);
                         break;
 
-                    case SettingsElements.UIComponents.Slider:
-                        SettingsElements.Slider(settingDefinition, name, defaultState, opts, opts1, createdSection.Background, 300);
+                    case Ui.ComponentType.Slider:
+                        Ui.Slider(settingDefinition, name, defaultState, opts, opts1, createdSection.Background, 300);
                         break;
 
-                    case SettingsElements.UIComponents.Dropdown:
-                        SettingsElements.Dropdown(settingDefinition, name, defaultState, opts, createdSection.Background, 300);
+                    case Ui.ComponentType.Dropdown:
+                        Ui.Dropdown(settingDefinition, name, defaultState, opts, createdSection.Background, 300);
                         break;
                 }
 
-                if (desc != "" && type != SettingsElements.UIComponents.Text) {
-                    SettingsElements.Description(createdSection.Background, desc, `${settingDefinition.internalName}_Desc`);
+                if (desc != "" && type != Ui.ComponentType.Text) {
+                    Ui.Description(createdSection.Background, desc, `${settingDefinition.internalName}_Desc`);
                 }
 
                 index++;
                 if (index < Object.keys(settingsLayout).length) {
-                    SettingsElements.Divider(createdSection.Background, 'divider', setting);
+                    Ui.Divider(createdSection.Background, 'divider', setting);
                 }
             }
         }
@@ -369,31 +374,33 @@ function OnSwitchPage(pageName) {
     }, 200);
 
     if (pageName == "Bindings") {
-        SendCommand(Commands.OpenSteamVRBindings, null, null);
+        Api.Send(Api.Commands.OpenSteamVRBindings, null, null);
     }
 }
 
-
-
 // Message Handling Functions
-function SetupSocketListeners() {
-    Socket.CurrentSocket.addEventListener('open', () => {
-        SendCommand(Commands.RequestThemeUpdate, null, 'subscribe');
-        SendCommand(Commands.RequestUpdatedLanguageList, null, 'subscribe');
-        SendCommand(Commands.RequestUpdatedLanguageMap, null, 'subscribe');
-        SendCommand(Commands.RequestGetSettings, null, null);
-        SendCommand(Commands.RequestAchievementInformation, null, null);
+function SubscribeToApiEvents() {
+    Api.Client.Socket.addEventListener('open', () => {
+        Api.Send(Api.Commands.SubscribeToEvents, JSON.stringify(
+            [
+                "Theme",
+                "Languages",
+                "LanguageMap",
+            ]
+        ));
+        Api.Send(Api.Commands.RequestGetSettings, null, null);
+        Api.Send(Api.Commands.RequestAchievementInformation, null, null);
     });
 
-    Socket.CurrentSocket.addEventListener('message', function message(data) {
+    Api.Client.Socket.addEventListener('message', function message(data) {
         HandleMessages(data);
     });
 
-    Socket.CurrentSocket.addEventListener('close', () => {
-        console.log(`${XSOServerMessage.sender} websocket was disconnected. Attempting reconnect.`);
+    Api.Client.Socket.addEventListener('close', () => {
+        console.log(`${Api.ApiObject.sender} websocket was disconnected. Attempting reconnect.`);
         setTimeout(function () {
-            ConnectToServer('settings');
-            SetupSocketListeners();
+            Api.Connect('settings');
+            SubscribeToApiEvents();
             console.log("Reconnecting...");
         }, 1000);
     });
@@ -401,14 +408,14 @@ function SetupSocketListeners() {
 
 
 function HandleMessages(msg) {
-    var decoded = DecodeMessage(msg);
+    var decoded = Api.Parse(msg);
     switch (decoded.Command) {
         case 'UpdateSteamAvatar':
             // Wrist.ProfileImage.src = `data:image/png;base64,${decoded.RawData}`
             break;
 
         case 'UpdateTheme':
-            SetGlobalThemeVariables(decoded.JsonData);
+            Common.ApplyTheme(decoded.JsonData);
             break;
 
         case 'UpdateSettings':
@@ -424,7 +431,7 @@ function HandleMessages(msg) {
             break;
 
         case 'UpdateAchievementStatus':
-            SettingsElements.CheckForSettingsThatRelyOnSteamAchievements(decoded.JsonData);
+            Ui.CheckForSettingsThatRelyOnSteamAchievements(decoded.JsonData);
             break;
     }
 }
@@ -441,7 +448,7 @@ function UpdateLanguageList(data) {
 
     SettingsLayout.General.Accessibility.Language.opts = languageNames;
     SettingsLayout.General.Accessibility.Language.opts1 = languageURLs;
-    SettingsElements.DropdownRepopulate(SettingsLayout.General.Accessibility.Language);
+    Ui.DropdownRepopulate(SettingsLayout.General.Accessibility.Language);
 }
 
 function UpdateLocalizedTextElements(languageMap) {
@@ -478,18 +485,18 @@ function SetMenuStates(data) {
             var sliderG = document.getElementById('AccentColorG');
             var sliderB = document.getElementById('AccentColorB');
 
-            SettingsElements.UpdateSliderUI(sliderR, value.r);
-            SettingsElements.UpdateSliderUI(sliderG, value.g);
-            SettingsElements.UpdateSliderUI(sliderB, value.b);
+            Ui.UpdateSliderUI(sliderR, value.r);
+            Ui.UpdateSliderUI(sliderG, value.g);
+            Ui.UpdateSliderUI(sliderB, value.b);
         }
         else if (key == 'NotificationOffsets') {
             var sliderX = document.getElementById('NotificationPositionX');
             var sliderY = document.getElementById('NotificationPositionY');
             var sliderZ = document.getElementById('NotificationPositionZ');
 
-            SettingsElements.UpdateSliderUI(sliderX, value.x);
-            SettingsElements.UpdateSliderUI(sliderY, value.y);
-            SettingsElements.UpdateSliderUI(sliderZ, value.z);
+            Ui.UpdateSliderUI(sliderX, value.x);
+            Ui.UpdateSliderUI(sliderY, value.y);
+            Ui.UpdateSliderUI(sliderZ, value.z);
         }
         else {
             var uiElement = document.getElementById(key);
@@ -500,7 +507,7 @@ function SetMenuStates(data) {
                         break;
 
                     case 'slider':
-                        SettingsElements.UpdateSliderUI(uiElement, value);
+                        Ui.UpdateSliderUI(uiElement, value);
                         break;
 
                     //TODO:: Dropdowns can get desynced from what is actually selected if they're dynamically populated.
@@ -519,17 +526,17 @@ function SetMenuStates(data) {
                         break;
                 }
 
-                SettingsElements.CheckForSettingsThatRelyOnChangedSetting(key, value);
+                Ui.CheckForSettingsThatRelyOnChangedSetting(key, value);
             }
         }
     }
 
     var appVersionText = document.getElementById("VersionNumber_Desc");
     appVersionText.innerHTML = `Build ${data.VersionNumber}`;
-    
+
     if (data.KBVersion) {
-        var kbVersion = document.getElementById("KBVersion_Desc");
-        kbVersion.innerHTML = `Version ${data.KBVersion}`;
+        var kbv = document.getElementById("KBVersion_Desc");
+        kbv.innerHTML = `Version ${data.KBVersion}`;
     }
 
     console.log("Settings Updated.");

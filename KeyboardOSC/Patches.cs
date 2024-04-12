@@ -1,10 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using HarmonyLib;
+using KeyboardOSC.Twitch;
+using Steamworks;
 using UnityEngine;
 using WindowsInput;
 using WindowsInput.Native;
 using XSOverlay;
+using XSOverlay.WebApp;
+using XSOverlay.Websockets.API;
 
 namespace KeyboardOSC;
 
@@ -12,9 +16,6 @@ namespace KeyboardOSC;
 public static class Patches
 {
     private static Harmony Harmony;
-
-    private static WindowAttachementManager.DeviceToAttachTo kbAttachedTo =
-        WindowAttachementManager.DeviceToAttachTo.None;
 
     private static bool HasSettingsBeenOpenedOnce;
 
@@ -75,7 +76,7 @@ public static class Patches
         var setSettings = AccessTools.Method(typeof(XSettingsManager), nameof(XSettingsManager.SetSetting));
         var setSettingsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(SetSettingPatch)));
 
-        var reqSettings = AccessTools.Method(typeof(ServerBridge), "OnRequestCurrentSettings");
+        var reqSettings = AccessTools.Method(typeof(ApiHandler), "OnRequestCurrentSettings");
         var reqSettingsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(RequestSettingsPatch)));
 
         Harmony.Patch(toggleAppSettings, postfix: settingsOverlayPatch);
@@ -115,25 +116,37 @@ public static class Patches
     public static void SettingsOverlayPatch()
     {
         if (!Plugin.ModifiedUiSuccess || HasSettingsBeenOpenedOnce) return;
+        Plugin.PluginLogger.LogInfo("Replacing settings page url!");
+        var globalSettings = Overlay_Manager.Instance.GlobalSettingsMenuOverlay;
         var loadString =
-            $"http://localhost:{ExternalMessageHandler.Instance.Config.WebSocketPort + 1}/ui/SettingsKO.html";
-        Overlay_Manager.Instance.GlobalSettingsMenuOverlay.OverlayWebView._webView.WebView.LoadUrl(loadString);
+            $"http://localhost:{ExternalMessageHandler.Instance.Config.WebSocketPort + 1}/apps/_UI/Default/Settings/SettingsKO.html";
+        globalSettings.OverlayWebView._webView.WebView.LoadUrl(loadString);
         HasSettingsBeenOpenedOnce = true;
     }
 
     public static void RequestSettingsPatch(string sender, string data)
     {
         // create new UiSettings instance
+        var pluginVersion = Plugin.AssemblyVersion;
+        if (SteamClient.IsValid && SteamApps.CurrentBetaName != null)
+        {
+            pluginVersion += $" — you're on the <strong>{SteamApps.CurrentBetaName}</strong> branch of XSOverlay! Check the plugin repo releases tab for beta plugin updates/fixes";
+        } else if (Tools.UpdateCheckResult.Key)
+        {
+            pluginVersion += $" — A newer version {Tools.UpdateCheckResult.Value} is available!";
+        }
+        
         var settings = new UiSettings
         {
-            KBVersion = Plugin.AssemblyVersion,
             KBCheckForUpdates = PluginSettings.GetSetting<bool>("CheckForUpdates").Value,
             KBLiveSend = PluginSettings.GetSetting<bool>("LiveSend").Value,
             KBTypingIndicator = PluginSettings.GetSetting<bool>("TypingIndicator").Value,
-            KBAttachmentIndex = (int)kbAttachedTo
+            KBTwitchSending = PluginSettings.GetSetting<bool>("TwitchSending").Value,
+            KBDisableAffixes = PluginSettings.GetSetting<bool>("DisableAffixes").Value,
+            KBVersion = pluginVersion,
         };
-        var data2 = JsonUtility.ToJson(settings, true);
-        ServerBridge.Instance.SendMessage("UpdateSettings", data2, null, sender);
+        var data2 = JsonUtility.ToJson(settings, false);
+        ServerClientBridge.Instance.Api.SendMessage("UpdateSettings", data2, null, sender);
     }
 
     public static bool SetSettingPatch(string name, string value, string value1, bool sendAnalytics = false)
@@ -155,24 +168,23 @@ public static class Patches
             case "KBTypingIndicator":
                 PluginSettings.SetSetting<bool>("TypingIndicator", value);
                 break;
+            case "KBTwitchSending":
+                PluginSettings.SetSetting<bool>("TwitchSending", value);
+                break;
+            case "KBDisableAffixes":
+                PluginSettings.SetSetting<bool>("DisableAffixes", value);
+                break;
             case "KBOpenRepo":
                 Application.OpenURL("https://github.com/nyakowint/xsoverlay-keyboard-osc");
                 Tools.SendBread("KeyboardOSC Github link opened in browser!");
                 break;
-            case "KBAttachmentIndex":
-                kbAttachedTo = (WindowAttachementManager.DeviceToAttachTo)int.Parse(value);
-                Plugin.Instance.AttachKeyboard(int.Parse(value));
-                break;
-            case "KBVersion":
-                Plugin.PluginLogger.LogWarning("bro what are you doing this is literally text");
-                break;
             case "KBVersionCheck":
                 Task.Run(Tools.CheckVersion);
                 break;
-            default:
-                Plugin.PluginLogger.LogWarning($"Unknown setting {name}. Looks like you need to update the plugin!");
-                break;
         }
+        
+        if (name.StartsWith("Twitch"))
+            Core.SettingsCallback(name, value);
 
         return true;
     }

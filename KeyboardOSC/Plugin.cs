@@ -10,6 +10,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using XSOverlay;
+using XSOverlay.WebApp;
 
 [assembly: AssemblyVersion(Plugin.AssemblyVersion)]
 
@@ -18,11 +19,11 @@ namespace KeyboardOSC
     [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", AssemblyVersion)]
     public class Plugin : BaseUnityPlugin
     {
-        public const string AssemblyVersion = "1.2.2.0";
+        public const string AssemblyVersion = "1.2.3.0";
         public static Plugin Instance;
         public static ManualLogSource PluginLogger;
 
-        public static bool IsDebugConfig;
+        public static bool IsDebugConfig = false;
         public static bool ChatModeActive;
         public static bool ModifiedUiSuccess;
 
@@ -46,11 +47,10 @@ namespace KeyboardOSC
             PluginSettings.Init();
             
             // Download modified settings code
-            
             ModifiedUiSuccess = Tools.DownloadModifiedUi();
 
             if (!Environment.CommandLine.Contains("-batchmode") || IsDebugConfig) return;
-            Logger.LogWarning("XSOverlay runs in batchmode normally (headless, without a window).");
+            Logger.LogWarning("XSOverlay runs in batchmode normally (headless without a window).");
             Logger.LogWarning("To see extended logs launch XSOverlay directly.");
         }
 
@@ -63,7 +63,7 @@ namespace KeyboardOSC
             ReleaseStickyKeys = AccessTools.Method(typeof(KeyboardInputHandler), "ReleaseStickyKeys");
             Patches.PatchAll();
 
-            ServerBridge.Instance.CommandMap["Keyboard"] = delegate
+            ServerClientBridge.Instance.Api.Commands["Keyboard"] = delegate
             {
                 InitializeKeyboard();
                 Overlay_Manager.Instance.EnableKeyboard();
@@ -80,7 +80,7 @@ namespace KeyboardOSC
             SetupToggleButton();
             SetupBar();
 
-            ServerBridge.Instance.CommandMap["Keyboard"] = delegate { Overlay_Manager.Instance.EnableKeyboard(); };
+            ServerClientBridge.Instance.Api.Commands["Keyboard"] = delegate { Overlay_Manager.Instance.EnableKeyboard(); };
             var checkUpdates = PluginSettings.GetSetting<bool>("CheckForUpdates");
             if (checkUpdates.Value) Task.Run(Tools.CheckVersion);
         }
@@ -106,7 +106,6 @@ namespace KeyboardOSC
             var oscBarRoot = new GameObject("KeyboardOSC Root");
             oscBarRoot.SetActive(false);
             oscBarRoot.AddComponent<OverlayTopLevelObject>();
-
 
             oscBarWindowObj = Instantiate(keyboardWindow.gameObject, oscBarRoot.transform);
             oscBarWindowObj.Rename("KeyboardOSC Window");

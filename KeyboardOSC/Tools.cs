@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,10 +9,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using BepInEx;
+using HarmonyLib;
 using Newtonsoft.Json.Linq;
+using Steamworks;
 using UnityEngine;
 using WindowsInput.Native;
 using XSOverlay;
+using XSOverlay.WebApp;
+using XSOverlay.Websockets.API;
 using Object = UnityEngine.Object;
 
 namespace KeyboardOSC;
@@ -19,6 +24,8 @@ namespace KeyboardOSC;
 #pragma warning disable Publicizer001
 public static class Tools
 {
+    
+    public static KeyValuePair<bool, string> UpdateCheckResult = new(false, "");
     public static void SendOsc(string address, params object[] msg)
     {
         var oscClient = ExternalMessageHandler.Instance.OscClient;
@@ -35,7 +42,7 @@ public static class Tools
 
     public static void SendBread(string title, string content = "")
     {
-        var notif = new XSOMessage()
+        var notif = new Objects.NotificationObject
         {
             title = title,
             content = content,
@@ -112,6 +119,7 @@ public static class Tools
         var releaseVersion = release.GetName().Version;
         if (releaseVersion > Version.Parse(Plugin.AssemblyVersion))
         {
+            UpdateCheckResult = new KeyValuePair<bool, string>(true, releaseVersion.ToString());
             logger.LogInfo($"New version available! {releaseVersion}");
             ThreadingHelper.Instance.StartSyncInvoke(() => SendBread("Plugin Update Available",
                 $"Version {releaseVersion} of KeyboardOSC is available. You currently have version {Plugin.AssemblyVersion}, it's recommended to install it :D"));
@@ -120,7 +128,6 @@ public static class Tools
         {
             logger.LogInfo("No updates available.");
         }
-        
     }
 
     public static bool DownloadModifiedUi()
@@ -133,14 +140,14 @@ public static class Tools
             logger.LogInfo("Downloading modified HTML...");
             var htmlContent =
                 client.DownloadString(
-                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/SettingsKO.html");
+                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/NO-MORE-NODE/SettingsKO.html");
             logger.LogInfo("Downloading modified JS...");
             var jsContent =
                 client.DownloadString(
-                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/settingsKO.js");
-
-            var htmlPath = $"{Application.streamingAssetsPath}/Plugins/UserInterface/SettingsKO.html";
-            var jsPath = $"{Application.streamingAssetsPath}/Plugins/UserInterface/Shared/js/settingsKO.js";
+                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/NO-MORE-NODE/settingsKO.js");
+            
+            var htmlPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/Settings/SettingsKO.html";
+            var jsPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/_Shared/js/settingsKO.js";
 
             logger.LogInfo($"Writing settings HTML to: {htmlPath}");
             logger.LogInfo($"Writing settings JS to: {jsPath}");

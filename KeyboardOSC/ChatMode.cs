@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Timers;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using KeyboardOSC.Twitch;
 using TMPro;
 using UnityEngine;
 using WindowsInput.Native;
@@ -28,12 +30,12 @@ public static class ChatMode
     public static void HandleKey(KeyboardKey.VirtualKeyEventData eventData)
     {
         var scanCode = eventData.Sender.UsingRawVirtualKeyCode
-            ? (uint) eventData.KeyCode[0]
+            ? (uint)eventData.KeyCode[0]
             : eventData.Sender.ScanCode[0];
         var shiftedField = AccessTools.Field(typeof(KeyboardKey), "IsShifted");
         var altedField = AccessTools.Field(typeof(KeyboardKey), "IsAlted");
-        var isShifted = (bool) shiftedField.GetValue(eventData.Sender);
-        var isAlted = (bool) altedField.GetValue(eventData.Sender); // altGr
+        var isShifted = (bool)shiftedField.GetValue(eventData.Sender);
+        var isAlted = (bool)altedField.GetValue(eventData.Sender); // altGr
 
         foreach (var key in eventData.KeyCode)
         {
@@ -108,16 +110,29 @@ public static class ChatMode
             case VirtualKeyCode.RETURN:
                 if (liveSendMode)
                 {
-                    Logger.LogInfo($"Sending message: {_currentText.ReplaceShortcodes()} [^-^]");
+                    Logger.LogInfo($"Sending message: {_currentText.ReplaceShortcodes()} [ls]");
                     _lastMsg = _currentText;
-                    SendMessage(true);
-                    ClearInput();
+                    if (Core.IsTwitchSendingEnabled && !_isSilentMsg)
+                    {
+                        var affixes = Core.GetAffixes();
+                        var currentText = _currentText.ReplaceShortcodes();
+                        SendMessage(true);
+                        Task.Run(() =>
+                        {
+                            Helix.SendTwitchMessage($"{affixes.Item1} {currentText} {affixes.Item2}");
+                            ThreadingHelper.Instance.StartSyncInvoke(ClearInput);
+                        });
+                    }
+                    else
+                    {
+                        SendMessage(true);
+                        ClearInput();
+                    }
                 }
                 else
                 {
                     Logger.LogInfo($"Sending message: {_currentText.ReplaceShortcodes()}");
                     SendMessage();
-                    ClearInput();
                 }
 
                 return;
@@ -156,7 +171,7 @@ public static class ChatMode
         if (liveSend)
         {
             _eventsTimer.Stop();
-            Tools.SendOsc("/chatbox/input", _currentText.ReplaceShortcodes(), true, !_isSilentMsg || _isFirstMsg);
+            Tools.SendOsc("/chatbox/input", _currentText.ReplaceShortcodes(), true, !_isSilentMsg);
             SendTyping(false);
             _isFirstMsg = false;
         }
@@ -164,6 +179,14 @@ public static class ChatMode
         {
             Tools.SendOsc("/chatbox/input", _currentText.ReplaceShortcodes(), true, !_isSilentMsg);
             SendTyping(false);
+            if (Core.IsTwitchSendingEnabled && !_isSilentMsg)
+            {
+                var affixes = Core.GetAffixes();
+                var currentText = _currentText.ReplaceShortcodes();
+                Task.Run(() =>
+                    Helix.SendTwitchMessage($"{affixes.Item1} {currentText} {affixes.Item2}"));
+            }
+
             _lastMsg = _currentText;
             ClearInput();
         }
@@ -190,7 +213,7 @@ public static class ChatMode
         _charCounter = charCounter;
         _eventsTimer.Elapsed += TimerElapsed;
         var stickyKeysField = AccessTools.Field(typeof(KeyboardInputHandler), "CurrentlyDownStickyKeys");
-        _currentlyDownStickyKeys = (List<KeyboardKey>) stickyKeysField.GetValue(Plugin.Instance.inputHandler);
+        _currentlyDownStickyKeys = (List<KeyboardKey>)stickyKeysField.GetValue(Plugin.Instance.inputHandler);
     }
 
     private static void UpdateChatColor()
@@ -207,7 +230,7 @@ public static class ChatMode
 
     private static void UpdateChatText(string text)
     {
-        if (text.Length > 144)
+        if (text.Length > 144 && !Core.IsTwitchSendingEnabled)
         {
             text = text.Substring(0, 144);
         }
@@ -222,16 +245,17 @@ public static class ChatMode
     {
         var shortcodes = new Dictionary<string, string>
         {
-            {"//shrug", "¯\\_(ツ)_/¯"},
-            {"//happy", "(¬‿¬)"},
-            {"//table", "┬─┬"},
-            {"//music", "🎵"},
-            {"//cookie", "🍪"},
-            {"//star", "⭐"},
-            {"//hrt", "💗"},
-            {"//2hrt", "💕"},
-            {"//skull", "💀"},
-            {"//skull2", "☠"},
+            { "//shrug", "¯\\_(ツ)_/¯" },
+            { "//happy", "(¬‿¬)" },
+            { "//tflip", "┬─┬" },
+            { "//music", "🎵" },
+            { "//cookie", "🍪" },
+            { "//star", "⭐" },
+            { "//hrt", "💗" },
+            { "//hrt2", "💕" },
+            { "//skull", "💀" },
+            { "//skull2", "☠" },
+            { "//rx3", "rawr x3" }
         };
 
         foreach (var shortcode in shortcodes)
