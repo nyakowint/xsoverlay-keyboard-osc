@@ -76,8 +76,7 @@ Use the following shortcut keys:
 | <kbd>CTRL</kbd> + <kbd>Backspace</kbd> | Delete last word (experimental)
 | <kbd>ENTER</kbd> | Send message to the chatbox!
 
-I cannot guarantee full functionality with the CVR chatbox mod, as this is built with VRChat's OSC routes in mind. They
-were identical last I checked.
+I cannot guarantee full compatibility with OSC in alternate platforms (mostly resonite/chillout?) as this is made with VRC's routes in mind.  
 
 ## Twitch Setup
 - Go to [Twitch Developer Console](https://dev.twitch.tv/console) and create an Application
