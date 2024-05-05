@@ -19,7 +19,7 @@ namespace KeyboardOSC
     [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", AssemblyVersion)]
     public class Plugin : BaseUnityPlugin
     {
-        public const string AssemblyVersion = "1.2.3.0";
+        public const string AssemblyVersion = "1.2.4.0";
         public static Plugin Instance;
         public static ManualLogSource PluginLogger;
 
