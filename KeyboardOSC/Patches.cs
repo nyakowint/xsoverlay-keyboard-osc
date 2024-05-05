@@ -141,6 +141,7 @@ public static class Patches
             KBCheckForUpdates = PluginSettings.GetSetting<bool>("CheckForUpdates").Value,
             KBLiveSend = PluginSettings.GetSetting<bool>("LiveSend").Value,
             KBTypingIndicator = PluginSettings.GetSetting<bool>("TypingIndicator").Value,
+            KBDisableMaxLength = PluginSettings.GetSetting<bool>("DisableMaxLength").Value,
             KBTwitchSending = PluginSettings.GetSetting<bool>("TwitchSending").Value,
             KBDisableAffixes = PluginSettings.GetSetting<bool>("DisableAffixes").Value,
             KBVersion = pluginVersion,

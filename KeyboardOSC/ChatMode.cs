@@ -24,7 +24,7 @@ public static class ChatMode
     private static readonly ManualLogSource Logger = Plugin.PluginLogger;
     private static TextMeshProUGUI _oscBarText;
     private static TextMeshProUGUI _charCounter;
-    private static List<KeyboardKey> _currentlyDownStickyKeys = new();
+    private static List<KeyboardKey> _currentlyDownStickyKeys = [];
     private static Timer _eventsTimer = new(1300);
 
     public static void HandleKey(KeyboardKey.VirtualKeyEventData eventData)
@@ -106,11 +106,10 @@ public static class ChatMode
                 _currentText += GUIUtility.systemCopyBuffer;
                 UpdateChatText(_currentText);
                 return;
-            // Send message (or clear for continuous)
             case VirtualKeyCode.RETURN:
                 if (liveSendMode)
                 {
-                    Logger.LogInfo($"Sending message: {_currentText.ReplaceShortcodes()} [ls]");
+                    Logger.LogInfo($"Sending message (live send enabled): {_currentText.ReplaceShortcodes()}");
                     _lastMsg = _currentText;
                     if (Core.IsTwitchSendingEnabled && !_isSilentMsg)
                     {
@@ -140,12 +139,7 @@ public static class ChatMode
 
         // Normal character inputs
         if (sendTyping) SendTyping(_currentText.Length != 0);
-        if (liveSendMode)
-        {
-            _eventsTimer.Start();
-            if (_currentText.IsNullOrWhiteSpace())
-                _isFirstMsg = true;
-        }
+        if (liveSendMode) _eventsTimer.Start();
 
         _currentText += character;
         UpdateChatText(_currentText);
@@ -157,7 +151,7 @@ public static class ChatMode
         Logger.LogInfo("Timer elapsed, sending message");
         if (_currentText.IsNullOrWhiteSpace())
         {
-            Tools.SendOsc("/chatbox/input", string.Empty, true, false);
+            InputToChatbox(string.Empty, false);
             SendTyping(false);
         }
 
@@ -168,16 +162,18 @@ public static class ChatMode
 
     private static void SendMessage(bool liveSend = false)
     {
+        var triggerSfx = !_isSilentMsg && _isFirstMsg;
+
         if (liveSend)
         {
             _eventsTimer.Stop();
-            Tools.SendOsc("/chatbox/input", _currentText.ReplaceShortcodes(), true, !_isSilentMsg);
+            if (_isFirstMsg) _isFirstMsg = false;
+            InputToChatbox(_currentText.ReplaceShortcodes(), triggerSfx);
             SendTyping(false);
-            _isFirstMsg = false;
         }
         else
         {
-            Tools.SendOsc("/chatbox/input", _currentText.ReplaceShortcodes(), true, !_isSilentMsg);
+            InputToChatbox(_currentText.ReplaceShortcodes(), !_isSilentMsg);
             SendTyping(false);
             if (Core.IsTwitchSendingEnabled && !_isSilentMsg)
             {
@@ -191,12 +187,24 @@ public static class ChatMode
             ClearInput();
         }
     }
+    
+    /// <summary>
+    /// Since i keep forgetting:
+    /// /chatbox/input s b n Input text into the chatbox.
+    /// If B is True, send the text in S immediately, bypassing the keyboard. If b is False, open the keyboard and populate it with the provided text.
+    /// N is an additional bool parameter that when set to False will not trigger the notification SFX (defaults to True if not specified).
+    /// </summary>
+    private static void InputToChatbox(string text, bool triggerSfx = true)
+    {
+        Tools.SendOsc("/chatbox/input", text, true, triggerSfx);
+    }
 
     private static void ClearInput()
     {
         UpdateChatText(string.Empty);
         _currentText = string.Empty;
         _isSilentMsg = false;
+        _isFirstMsg = true;
         UpdateChatColor();
         Plugin.ReleaseStickyKeys.Invoke(Plugin.Instance.inputHandler, null);
     }
@@ -230,7 +238,8 @@ public static class ChatMode
 
     private static void UpdateChatText(string text)
     {
-        if (text.Length > 144 && !Core.IsTwitchSendingEnabled)
+        var disableMaxLength = Core.IsTwitchSendingEnabled || PluginSettings.GetSetting<bool>("DisableMaxLength").Value;
+        if (text.Length > 144 && !disableMaxLength)
         {
             text = text.Substring(0, 144);
         }

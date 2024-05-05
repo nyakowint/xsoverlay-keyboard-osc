@@ -62,9 +62,10 @@ const SettingsLayout = {
     },
     Keyboard_OSC: {
         _: {
-            KBCheckForUpdates: new Ui.Setting(Ui.ComponentType.Toggle, 'Notify about updates', "The plugin will notify you if there's an update available :D", false),
+            KBCheckForUpdates: new Ui.Setting(Ui.ComponentType.Toggle, 'Notify about updates', "The plugin will notify you if there's an update available :D", true),
             KBLiveSend: new Ui.Setting(Ui.ComponentType.Toggle, 'Live send mode', "Messages will be sent to the chatbox as you type.", false),
             KBTypingIndicator: new Ui.Setting(Ui.ComponentType.Toggle, 'Send typing indicator', "Some people prefer to not let people know when they are typing. If this is you here ya go!", true),
+            KBDisableMaxLength: new Ui.Setting(Ui.ComponentType.Toggle, 'Disable max length', "Disable the character limit on the keyboard bar. This is pointless to enable for VRChat uses", false),
             KBVersionCheck: new Ui.Setting(Ui.ComponentType.Button, 'Check for updates', "Check for updates rn!!!!!", null, null, null),
             KBOpenRepo: new Ui.Setting(Ui.ComponentType.Button, 'Plugin Repo', "View this plugin's repo on GitHub", null, null, null),
             OpenPluginList: new Ui.Setting(Ui.ComponentType.Button, 'xso plugin app list', "testing stuff requires extra dll", null, null, null),
