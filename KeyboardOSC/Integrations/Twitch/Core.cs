@@ -4,12 +4,10 @@ using System.Net;
 using System.Threading.Tasks;
 using BepInEx.Logging;
 using Newtonsoft.Json;
-using Steamworks.Data;
 using UnityEngine;
 using XSOverlay;
-using XSOverlay.WebApp;
 
-namespace KeyboardOSC.Twitch;
+namespace KeyboardOSC.Integrations.Twitch;
 
 public abstract class Core
 {

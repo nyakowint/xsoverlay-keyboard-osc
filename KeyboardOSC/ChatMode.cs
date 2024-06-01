@@ -5,7 +5,7 @@ using System.Timers;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
-using KeyboardOSC.Twitch;
+using KeyboardOSC.Integrations.Twitch;
 using TMPro;
 using UnityEngine;
 using WindowsInput.Native;

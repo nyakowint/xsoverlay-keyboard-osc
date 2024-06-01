@@ -6,7 +6,7 @@ using System.Text;
 using BepInEx;
 using Newtonsoft.Json;
 
-namespace KeyboardOSC.Twitch;
+namespace KeyboardOSC.Integrations.Twitch;
 
 public abstract class Helix
 {

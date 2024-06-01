@@ -24,8 +24,8 @@ namespace KeyboardOSC;
 #pragma warning disable Publicizer001
 public static class Tools
 {
-    
     public static KeyValuePair<bool, string> UpdateCheckResult = new(false, "");
+
     public static void SendOsc(string address, params object[] msg)
     {
         var oscClient = ExternalMessageHandler.Instance.OscClient;
@@ -95,7 +95,11 @@ public static class Tools
 
     #endregion
 
+#if DEV
     private const string ReleaseUrl = "https://api.github.com/repos/nyakowint/xsoverlay-keyboard-osc/releases/latest";
+#else
+    private const string ReleaseUrl = "https://api.github.com/repos/nyakowint/xsoverlay-keyboard-osc/releases/latest";
+#endif
 
     public static async Task CheckVersion()
     {
@@ -145,8 +149,9 @@ public static class Tools
             var jsContent =
                 client.DownloadString(
                     "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/NO-MORE-NODE/settingsKO.js");
-            
-            var htmlPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/Settings/SettingsKO.html";
+
+            var htmlPath =
+                $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/Settings/SettingsKO.html";
             var jsPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/_Shared/js/settingsKO.js";
 
             logger.LogInfo($"Writing settings HTML to: {htmlPath}");
@@ -159,7 +164,7 @@ public static class Tools
             Plugin.PluginLogger.LogError($"Exception downloading modified ui: {exception}");
             return false;
         }
-        
+
         return true;
     }
 
@@ -226,7 +231,7 @@ public static class Tools
             array[18] = byte.MaxValue;
         }
 
-        int num = ToUnicodeEx((uint) key, scanCode, array, stringBuilder, stringBuilder.Capacity, 0u, _currentHkl);
+        int num = ToUnicodeEx((uint)key, scanCode, array, stringBuilder, stringBuilder.Capacity, 0u, _currentHkl);
         if (num == k_SUCCESS)
         {
             return stringBuilder.ToString();

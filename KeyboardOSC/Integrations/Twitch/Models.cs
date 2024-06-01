@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace KeyboardOSC.Twitch;
+namespace KeyboardOSC.Integrations.Twitch;
 
 public class ChatMsgBody
 {

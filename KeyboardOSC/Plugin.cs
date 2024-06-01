@@ -19,7 +19,7 @@ namespace KeyboardOSC
     [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", AssemblyVersion)]
     public class Plugin : BaseUnityPlugin
     {
-        public const string AssemblyVersion = "1.2.4.0";
+        public const string AssemblyVersion = "1.3.0.0";
         public static Plugin Instance;
         public static ManualLogSource PluginLogger;
 
@@ -52,12 +52,13 @@ namespace KeyboardOSC
             if (!Environment.CommandLine.Contains("-batchmode") || IsDebugConfig) return;
             Logger.LogWarning("XSOverlay runs in batchmode normally (headless without a window).");
             Logger.LogWarning("To see extended logs launch XSOverlay directly.");
+            Logger.LogWarning("Report plugin-specific issues to the GitHub repo.");
         }
 
         private void Start()
         {
             Instance = this;
-            Logger.LogInfo("hi!");
+            Logger.LogInfo($"Keyboard OSC v{AssemblyVersion} started!");
             Console.Title = "KeyboardOSC - XSOverlay";
 
             ReleaseStickyKeys = AccessTools.Method(typeof(KeyboardInputHandler), "ReleaseStickyKeys");

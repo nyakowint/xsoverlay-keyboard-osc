@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using BepInEx.Configuration;
-using KeyboardOSC.Twitch;
+using KeyboardOSC.Integrations.Twitch;
 
 // ReSharper disable InconsistentNaming
 

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using HarmonyLib;
-using KeyboardOSC.Twitch;
+using KeyboardOSC.Integrations.Twitch;
 using Steamworks;
 using UnityEngine;
 using WindowsInput;
@@ -40,7 +40,7 @@ public static class Patches
             new[] { typeof(VirtualKeyCode) });
         var keyUp = AccessTools.Method(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyUp),
             new[] { typeof(VirtualKeyCode) });
-        var blockInputPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(BlockInput)));
+        var blockInputPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(BlockInputPatch)));
 
         Harmony.Patch(keyPress, prefix: blockInputPatch);
         Harmony.Patch(keyDown, prefix: blockInputPatch);
@@ -126,16 +126,21 @@ public static class Patches
 
     public static void RequestSettingsPatch(string sender, string data)
     {
-        // create new UiSettings instance
         var pluginVersion = Plugin.AssemblyVersion;
+#if DEBUG || DEV
+        pluginVersion += " (Dev) ";
+#endif
         if (SteamClient.IsValid && SteamApps.CurrentBetaName != null)
         {
-            pluginVersion += $" — you're on the <strong>{SteamApps.CurrentBetaName}</strong> branch of XSOverlay! Check the plugin repo releases tab for beta plugin updates/fixes";
-        } else if (Tools.UpdateCheckResult.Key)
+            pluginVersion +=
+                $" — you're on the <strong>{SteamApps.CurrentBetaName}</strong> branch of XSOverlay! Check the plugin repo releases tab for beta plugin updates/fixes";
+        }
+        else if (Tools.UpdateCheckResult.Key)
         {
             pluginVersion += $" — A newer version {Tools.UpdateCheckResult.Value} is available!";
         }
         
+        // create new UiSettings instance
         var settings = new UiSettings
         {
             KBCheckForUpdates = PluginSettings.GetSetting<bool>("CheckForUpdates").Value,
@@ -183,14 +188,14 @@ public static class Patches
                 Task.Run(Tools.CheckVersion);
                 break;
         }
-        
+
         if (name.StartsWith("Twitch"))
             Core.SettingsCallback(name, value);
 
         return true;
     }
 
-    public static bool BlockInput(VirtualKeyCode keyCode)
+    public static bool BlockInputPatch(VirtualKeyCode keyCode)
     {
         if (!Plugin.ChatModeActive) return true;
 
