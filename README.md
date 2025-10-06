@@ -7,7 +7,7 @@ If you are migrating from [OVR Toolkit](https://store.steampowered.com/app/10688
 
 > [!CAUTION]
 > Last tested build: Build 667. \
-> Patch 680 and newer do not work atm. See https://github.com/nyakowint/xsoverlay-keyboard-osc/issues/5
+> Patch 680 and newer do not work atm. See https://github.com/nyakowint/xsoverlay-keyboard-osc/issues/5 \
 > Newer patches *should* work, but use with caution - random things might break due to changes by Xiexe \
 > *(do not report bugs to them without removing the plugin first, thank you)*
 
@@ -97,7 +97,7 @@ If this plugin's settings dont show up in the menu, it's likely:
 - Either your XSOverlay or Plugin are outdated
 - something else, bug me about it shrug
 
-If you need help, have concerns or whatnot I'm in the XSOverlay server as well as my own [dev discord](https://discord.gg/BrUacrw4cy)
+If you need help or have concerns please create an discussion for help or issue for bugs.
 
 
 ## Manual install
