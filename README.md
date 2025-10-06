@@ -1,7 +1,5 @@
 # XSOverlay Keyboard OSC
 
-### Here's my latest revelation in "random bullshit go!", an overlay mod!
-
 If you are migrating from [OVR Toolkit](https://store.steampowered.com/app/1068820/OVR_Toolkit/) to [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/) and miss the chatbox-on-keyboard, or otherwise want chatbox functionality, this addon/plugin may be for you!
   
 > [!NOTE]
