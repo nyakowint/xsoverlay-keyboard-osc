@@ -2,19 +2,15 @@
 
 ### Here's my latest revelation in "random bullshit go!", an overlay mod!
 
-If you relate to one or more of the following:
-- Occasional VRChat keyboard glitches
-- Inability to type fast just because of how it is
-- Too used to overlay keyboards
-- Migrating from [OVR Toolkit](https://store.steampowered.com/app/1068820/OVR_Toolkit/) to [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/)
-- Some other random thing
-
-  This plugin is for you!
+If you are migrating from [OVR Toolkit](https://store.steampowered.com/app/1068820/OVR_Toolkit/) to [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/) and miss the chatbox-on-keyboard, or otherwise want chatbox functionality, this addon/plugin may be for you!
   
 > [!NOTE]
-> There is no official plugin support yet (as of 2024-05-27). This plugin is applied using [BepInEx](https://docs.bepinex.dev/index.html). \
-> Last tested with build 667. It should work on most newer versions, \
-> as long as Xiexe hasn't reworked something. (lol)
+> There is no first-party plugin support in XSOverlay (as of 2025-10-06). This plugin is applied using [BepInEx](https://docs.bepinex.dev/index.html). \
+
+> [!CAUTION]
+> Last tested build: Build 667. \
+> Newer patches *should* work, but use with caution - random things might break due to changes by Xiexe \
+> *(do not report bugs to them without removing the plugin first, thank you)*
 
 ## Preview
 
