@@ -5,6 +5,8 @@ How many people use this? Let me know with a emoji reaction below or something. 
 
 
 - The install script now handles install, uninstall, and updating the plugin!
+- Added a bunch of failsafes and error handling to hopefully prevent lockups. 
+  - You can have your keyboard and settings back now. I think.
 - Enabled the console window for all new plugin installs. This could help with random errors that pop up after updates.
     - if you want to enable it for your install, you can find it in `BepInEx\config\BepInEx.cfg`
     - or replace yours w the one in this release

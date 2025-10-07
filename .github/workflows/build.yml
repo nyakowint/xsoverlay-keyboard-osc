@@ -60,8 +60,10 @@ jobs:
           $short = "${{ github.sha }}".Substring(0,7)
           $tag = "$version+$short"
           $dll = 'builds/Release/net472/KeyboardOSC.dll'
+          $cfg = 'BepInEx.cfg'
           if (-not (Test-Path $dll)) { Write-Error "Artifact missing: $dll" }
+          if (-not (Test-Path $cfg)) { Write-Error "Artifact missing: $cfg" }
 
           if (Test-Path CHANGELOG.md) { $notes = Get-Content CHANGELOG.md -Raw } else { $notes = 'Automated build' }
 
-          gh release create $tag $dll --title "KeyboardOSC $tag" --prerelease --notes-file CHANGELOG.md || Write-Error 'Release creation failed'
+          gh release create $tag $dll $cfg --title "KeyboardOSC $tag" --prerelease --notes-file CHANGELOG.md || Write-Error 'Release creation failed'
