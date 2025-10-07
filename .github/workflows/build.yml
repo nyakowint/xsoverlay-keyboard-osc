@@ -1,8 +1,5 @@
 name: Build & Release
 
-permissions:
-  contents: write
-
 concurrency:
   group: "build"
   cancel-in-progress: true
@@ -36,23 +33,23 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Restore & add BepInEx feed
-        shell: pwsh
+      - name: Add Bepis NuGet & Restore dependencies
         run: |
-          dotnet nuget add source https://nuget.bepinex.dev/v3/index.json --name BepInEx
+          dotnet nuget add source https://nuget.bepinex.dev/v3/index.json
           dotnet restore
 
-      - name: Build (Release)
+      - name: Build
         run: dotnet build -c Release --no-restore
 
+      # Read the base version from VERSION file
       - name: Read version
         id: version
         shell: pwsh
         run: |
           if (-Not (Test-Path VERSION)) { Write-Error "VERSION file not found" }
-          $v = (Get-Content VERSION -Raw).Trim()
-          if (-not $v) { Write-Error "VERSION file is empty" }
-          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          $version = (Get-Content VERSION -Raw).Trim()
+          if (-not $version) { Write-Error "VERSION file is empty" }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Create Release
         shell: pwsh
