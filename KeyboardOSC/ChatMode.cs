@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Timers;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
-using KeyboardOSC.Twitch;
 using TMPro;
 using UnityEngine;
 using WindowsInput.Native;
@@ -111,22 +109,8 @@ public static class ChatMode
                 {
                     Logger.LogInfo($"Sending message (live send enabled): {_currentText.ReplaceShortcodes()}");
                     _lastMsg = _currentText;
-                    if (Core.IsTwitchSendingEnabled && !_isSilentMsg)
-                    {
-                        var affixes = Core.GetAffixes();
-                        var currentText = _currentText.ReplaceShortcodes();
-                        SendMessage(true);
-                        Task.Run(() =>
-                        {
-                            Helix.SendTwitchMessage($"{affixes.Item1} {currentText} {affixes.Item2}");
-                            ThreadingHelper.Instance.StartSyncInvoke(ClearInput);
-                        });
-                    }
-                    else
-                    {
-                        SendMessage(true);
-                        ClearInput();
-                    }
+                    SendMessage(true);
+                    ClearInput();
                 }
                 else
                 {
@@ -175,19 +159,12 @@ public static class ChatMode
         {
             InputToChatbox(_currentText.ReplaceShortcodes(), !_isSilentMsg);
             SendTyping(false);
-            if (Core.IsTwitchSendingEnabled && !_isSilentMsg)
-            {
-                var affixes = Core.GetAffixes();
-                var currentText = _currentText.ReplaceShortcodes();
-                Task.Run(() =>
-                    Helix.SendTwitchMessage($"{affixes.Item1} {currentText} {affixes.Item2}"));
-            }
 
             _lastMsg = _currentText;
             ClearInput();
         }
     }
-    
+
     /// <summary>
     /// Since i keep forgetting:
     /// /chatbox/input s b n Input text into the chatbox.
@@ -238,7 +215,7 @@ public static class ChatMode
 
     private static void UpdateChatText(string text)
     {
-        var disableMaxLength = Core.IsTwitchSendingEnabled || PluginSettings.GetSetting<bool>("DisableMaxLength").Value;
+        var disableMaxLength = PluginSettings.GetSetting<bool>("DisableMaxLength").Value;
         if (text.Length > 144 && !disableMaxLength)
         {
             text = text.Substring(0, 144);

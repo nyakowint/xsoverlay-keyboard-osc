@@ -10,6 +10,8 @@
         <OutputPath>$(SolutionDir)\builds\$(Configuration)</OutputPath>
         <IsPackable>false</IsPackable>
         <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+        <Configurations>Debug;Release;DEV</Configurations>
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <DebugType>Full</DebugType>

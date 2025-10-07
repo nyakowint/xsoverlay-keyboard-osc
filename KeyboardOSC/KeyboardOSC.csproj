@@ -10,11 +10,18 @@
         <OutputPath>$(SolutionDir)\builds\$(Configuration)</OutputPath>
         <IsPackable>false</IsPackable>
         <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+        <Configurations>Debug;Release;DEV</Configurations>
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <DebugType>Full</DebugType>
     </PropertyGroup>
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition=" '$(Configuration)' == 'Debug' ">
+    <PropertyGroup Condition=" '$(Configuration)' == 'DEV' ">
+      <OutputPath>D:\Stuff\XSOMod\\builds\Debug\</OutputPath>
+      <DebugSymbols>true</DebugSymbols>
+      <DebugType>full</DebugType>
+    </PropertyGroup>
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition=" '$(Configuration)' == 'Debug' OR '$(Configuration)' == 'DEV' ">
         <Exec Command="taskkill /f /im XSOverlay.exe" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ContinueOnError="true"/>
         <Exec Command="taskkill /f /im &quot;XSOverlay Media Manager.exe&quot;" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ContinueOnError="true"/>
         <Exec Command="taskkill /f /im &quot;Vuplex WebView.vuplex&quot;" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ContinueOnError="true"/>

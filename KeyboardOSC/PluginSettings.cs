@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-using BepInEx.Configuration;
-using KeyboardOSC.Twitch;
+﻿using BepInEx.Configuration;
 
 // ReSharper disable InconsistentNaming
 
@@ -19,24 +17,6 @@ public abstract class PluginSettings
         ConfigFile.Bind(sectionId, "TypingIndicator", true, "Whether to send typing indicator");
         ConfigFile.Bind(sectionId, "DisableMaxLength", false,
             "Dont limit keybar input to 144 characters (chatbox character limit)");
-
-
-        ConfigFile.Bind(sectionId, "TwitchSending", false, "Send messages to your twitch chat? (requires setup)");
-        ConfigFile.Bind(sectionId, "MsgPrefix", "[ ", "Message prefix sent with each message");
-        ConfigFile.Bind(sectionId, "MsgSuffix", "] ", "Message suffix sent with each message");
-        ConfigFile.Bind(sectionId, "DisableAffixes", true,
-            "Disable both prefix and suffix (e.g. playing a vr game other than vrchat)");
-        ConfigFile.Bind(sectionId, "TwitchUserId", "", "Your twitch ID");
-        var tClient = ConfigFile.Bind(sectionId, "TwitchClientId", "",
-            "Your twitch app client ID used for chat sending. Don't set these manually");
-        var tSecret = ConfigFile.Bind(sectionId, "TwitchClientSecret", "", "Twitch client secret");
-        var tRefresh = ConfigFile.Bind(sectionId, "TwitchRefreshToken", "", "Twitch refresh token");
-
-        if (!string.IsNullOrEmpty(tClient.Value) && !string.IsNullOrEmpty(tSecret.Value) &&
-            !string.IsNullOrEmpty(tRefresh.Value))
-        {
-            Task.Run(Helix.RefreshTokens);
-        }
     }
 
     public static ConfigEntry<T> GetSetting<T>(string settingName)
@@ -54,11 +34,9 @@ public abstract class PluginSettings
 
 public class UiSettings
 {
-    public string KBVersion = Plugin.AssemblyVersion;
+    public string KBVersion = Plugin.PluginVersion;
     public bool KBCheckForUpdates = true;
     public bool KBLiveSend = false;
     public bool KBTypingIndicator = true;
     public bool KBDisableMaxLength = false;
-    public bool KBTwitchSending = false;
-    public bool KBDisableAffixes = false;
 }

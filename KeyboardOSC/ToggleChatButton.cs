@@ -22,7 +22,7 @@ public class ToggleChatButton : MonoBehaviour
         PluginSettings.ConfigFile.TryGetEntry(PluginSettings.sectionId, "HasSeenHint", out ConfigEntry<bool> hasSeenHint);
         if (!hasSeenHint.Value)
         {
-            Tools.SendBread("HOLD UP!", "Make sure OSC is enabled in VRChat or this will do nothing! lol");
+            Tools.SendNotif("HOLD UP!", "Make sure OSC is enabled in VRChat or this will do nothing! lol");
             hasSeenHint.SetSerializedValue("true");
         }
         Plugin.Instance.ToggleChatMode();

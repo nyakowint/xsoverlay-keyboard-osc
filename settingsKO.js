@@ -57,24 +57,18 @@ function UIPage(name, sections, uiRoot) {
 const SettingsLayout = {
     Original_Settings: {
         _: {
-            GoToOgSettings: new Ui.Setting(Ui.ComponentType.Button, 'Go to original Settings', "Press this, then reopen settings if the settings shown here are not up to date yet. You will have to restart XSOverlay to get back here!", null, null, null)
+            GoToOgSettings: new Ui.Setting(Ui.ComponentType.Button, 'Original Settings Fallback', "Press the below button then reopen settings if the options shown here are not up to date yet. This is experimental and might not work! You will have to restart XSOverlay to change any plugin options.", null, null, null)
         }
     },
     Keyboard_OSC: {
         _: {
             KBCheckForUpdates: new Ui.Setting(Ui.ComponentType.Toggle, 'Notify about updates', "The plugin will notify you if there's an update available :D", true),
-            KBLiveSend: new Ui.Setting(Ui.ComponentType.Toggle, 'Live send mode', "Messages will be sent to the chatbox as you type.", false),
-            KBTypingIndicator: new Ui.Setting(Ui.ComponentType.Toggle, 'Send typing indicator', "Some people prefer to not let people know when they are typing. If this is you here ya go!", true),
-            KBDisableMaxLength: new Ui.Setting(Ui.ComponentType.Toggle, 'Disable max length', "Disable the character limit on the keyboard bar. This is pointless to enable for VRChat uses", false),
+            KBLiveSend: new Ui.Setting(Ui.ComponentType.Toggle, 'Live send mode', "If enabled messages will be sent to the chatbox as you type.", false),
+            KBTypingIndicator: new Ui.Setting(Ui.ComponentType.Toggle, 'Send typing indicator', "Some prefer to not let others know when they are typing. If this is you then here ya go!", true),
+            KBDisableMaxLength: new Ui.Setting(Ui.ComponentType.Toggle, 'Disable max length', "Disable the character limit on the keyboard bar. This is pointless to enable for VRChat as you will be cut off at 160chars", false),
             KBVersionCheck: new Ui.Setting(Ui.ComponentType.Button, 'Check for updates', "Check for updates rn!!!!!", null, null, null),
             KBOpenRepo: new Ui.Setting(Ui.ComponentType.Button, 'Plugin Repo', "View this plugin's repo on GitHub", null, null, null),
-            OpenPluginList: new Ui.Setting(Ui.ComponentType.Button, 'xso plugin app list', "testing stuff requires extra dll", null, null, null),
             KBVersion: new Ui.Setting(Ui.ComponentType.Text, 'KBVersion'),
-        },
-        Twitch: {
-            KBTwitchSending: new Ui.Setting(Ui.ComponentType.Toggle, 'Twitch sending', "Let chat know what you're saying in the chatbox", false),
-            KBDisableAffixes: new Ui.Setting(Ui.ComponentType.Toggle, 'Disable prefix/suffix', "some convention to use tags for msgs not directed at viewer", false),
-            TwitchSetup: new Ui.Setting(Ui.ComponentType.Button, 'Open Twitch Setup Page', "Open page to authorize for Twitch sending", null, null, null),
         }
     },
     General: {
@@ -90,7 +84,8 @@ const SettingsLayout = {
             InputMethod: new Ui.Setting(Ui.ComponentType.Dropdown, 'Input Method', "", 'MouseEmulation', ['TouchInput', 'MouseEmulation']),
             AutomaticMouseControl: new Ui.Setting(Ui.ComponentType.Toggle, 'Automatic Mouse Control', "", false, null, null, new Ui.ParentSetting('InputMethod', 1)),
             DoubleClickDelay: new Ui.Setting(Ui.ComponentType.Slider, 'Double Click Delay', "", 0.25, [0, 1, 0.01], 'ms', new Ui.ParentSetting('InputMethod', 1)),
-            PointerScale: new Ui.Setting(Ui.ComponentType.Slider, 'Pointer Scale', "", 1, [0.25, 1, 0.05], '%')
+            PointerScale: new Ui.Setting(Ui.ComponentType.Slider, 'Pointer Scale', "", 1, [0.25, 1, 0.05], '%'),
+            ScrollSpeed: new Ui.Setting(Ui.ComponentType.Slider, 'Scroll Speed', "", 0.5, [0, 1, 0.1], '%'),
         },
         User_Interface: {
             HideTooltips: new Ui.Setting(Ui.ComponentType.Toggle, 'Hide Tooltips', "", false),
@@ -113,6 +108,7 @@ const SettingsLayout = {
     Overlays: {
         Capture: {
             CaptureMethod: new Ui.Setting(Ui.ComponentType.Dropdown, 'Window Capture API', "", 'Windows Graphics Capture', ['WindowsGraphicsCapture', 'BitBlt']),
+            // ShowWindowPreviews: new Ui.Setting(Ui.ComponentType.Toggle, 'Show Window Thumbnails', true) NOTE:: DEPRECATED
         },
         Overlay_Behavior: {
             AutoRecenter: new Ui.Setting(Ui.ComponentType.Toggle, 'Auto Recenter', "", true),

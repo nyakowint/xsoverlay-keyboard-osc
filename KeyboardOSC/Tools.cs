@@ -9,13 +9,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using BepInEx;
-using HarmonyLib;
 using Newtonsoft.Json.Linq;
-using Steamworks;
 using UnityEngine;
 using WindowsInput.Native;
 using XSOverlay;
-using XSOverlay.WebApp;
 using XSOverlay.Websockets.API;
 using Object = UnityEngine.Object;
 
@@ -35,12 +32,12 @@ public static class Tools
         }
         else
         {
-            SendBread("Oops!", $"Failed to send OSC to {address}, client not running?");
+            SendNotif("Oops!", $"Failed to send OSC to {address}, client not running?");
             Plugin.PluginLogger.LogWarning("Failed to send OSC message, client is not running!");
         }
     }
 
-    public static void SendBread(string title, string content = "")
+    public static void SendNotif(string title, string content = "")
     {
         var notif = new Objects.NotificationObject
         {
@@ -52,7 +49,7 @@ public static class Tools
             sourceApp = "KeyboardOSC Plugin",
             volume = 0.5f
         };
-        NotificationHandler.Instance.PrepareToast(notif);
+        XSOEventSystem.Current.EventQueueNotification(notif);
     }
 
     private static int CalculateHeight(string content)
@@ -95,7 +92,7 @@ public static class Tools
 
     #endregion
 
-    private const string ReleaseUrl = "https://api.github.com/repos/nyakowint/xsoverlay-keyboard-osc/releases/latest";
+    private const string VersionUrl = "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/VERSION";
 
     public static async Task CheckVersion()
     {
@@ -104,29 +101,34 @@ public static class Tools
         client.DefaultRequestHeaders.Add("User-Agent", "xso-kbosc");
 
         logger.LogInfo("Checking for plugin updates...");
-        var response = await client.GetStringAsync(ReleaseUrl);
-        var json = JObject.Parse(response);
-        if (json["assets"] == null)
+        try
         {
-            logger.LogError("No assets found in release.");
-            return;
-        }
+            var response = await client.GetStringAsync(VersionUrl);
+            var remoteVersion = response.Trim();
+            
+            if (string.IsNullOrEmpty(remoteVersion))
+            {
+                logger.LogError("VERSION file is empty or invalid.");
+                return;
+            }
 
-        var latestReleaseAssetUrl = json["assets"].First(b => b["name"].Value<string>() == "KeyboardOSC.dll");
-        var releaseDll = await client.GetByteArrayAsync(latestReleaseAssetUrl["browser_download_url"]!.Value<string>());
-        var release = Assembly.Load(releaseDll);
-
-        var releaseVersion = release.GetName().Version;
-        if (releaseVersion > Version.Parse(Plugin.AssemblyVersion))
-        {
-            UpdateCheckResult = new KeyValuePair<bool, string>(true, releaseVersion.ToString());
-            logger.LogInfo($"New version available! {releaseVersion}");
-            ThreadingHelper.Instance.StartSyncInvoke(() => SendBread("Plugin Update Available",
-                $"Version {releaseVersion} of KeyboardOSC is available. You currently have version {Plugin.AssemblyVersion}, it's recommended to install it :D"));
+            logger.LogInfo($"Remote version: {remoteVersion}, Local version: {Plugin.PluginVersion}");
+            
+            if (Version.Parse(remoteVersion) > Version.Parse(Plugin.PluginVersion))
+            {
+                UpdateCheckResult = new KeyValuePair<bool, string>(true, remoteVersion);
+                logger.LogInfo($"New version available! {remoteVersion}");
+                ThreadingHelper.Instance.StartSyncInvoke(() => SendNotif("KeyboardChatbox update available!",
+                    $"A new version of KeyboardOSC [ {remoteVersion} ] is available. You are currently using version {Plugin.PluginVersion}. :D"));
+            }
+            else
+            {
+                logger.LogInfo("No updates available.");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            logger.LogInfo("No updates available.");
+            logger.LogError($"Failed to check for updates: {ex.Message}");
         }
     }
 
@@ -140,11 +142,11 @@ public static class Tools
             logger.LogInfo("Downloading modified HTML...");
             var htmlContent =
                 client.DownloadString(
-                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/NO-MORE-NODE/SettingsKO.html");
+                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/SettingsKO.html");
             logger.LogInfo("Downloading modified JS...");
             var jsContent =
                 client.DownloadString(
-                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/NO-MORE-NODE/settingsKO.js");
+                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/settingsKO.js");
             
             var htmlPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/Settings/SettingsKO.html";
             var jsPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/_Shared/js/settingsKO.js";
