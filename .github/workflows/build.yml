@@ -31,7 +31,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3.2.0
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: '9.0.x'
 
       - name: Add Bepis NuGet & Restore dependencies
         run: |
@@ -41,15 +41,62 @@ jobs:
       - name: Build
         run: dotnet build -c Release --no-restore
 
-      - name: Tag version
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      # Read the base version from VERSION file
+      - name: Read version
+        id: version
+        shell: pwsh
+        run: |
+          if (-Not (Test-Path VERSION)) { Write-Error "VERSION file not found" }
+          $version = (Get-Content VERSION -Raw).Trim()
+          if (-not $version) { Write-Error "VERSION file is empty" }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
 
+      # Read changelog content
+      - name: Read changelog
+        id: changelog
+        shell: pwsh
+        run: |
+          $changelogPath = "CHANGELOG.md"
+          
+          if (Test-Path $changelogPath) {
+            $content = Get-Content $changelogPath -Raw
+            Write-Host "Found CHANGELOG.md, using its content"
+            # Escape special characters for GitHub Actions
+            $content = $content -replace '%', '%25'
+            $content = $content -replace '\n', '%0A'
+            $content = $content -replace '\r', '%0D'
+            echo "notes=$content" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Host "CHANGELOG.md not found, using default notes"
+            $notes = "Automated build"
+            echo "notes=$notes" >> $env:GITHUB_OUTPUT
+          }
+
+      # Create a GitHub Release using VERSION + short commit SHA as tag (e.g. 1.2.5+abcdef0)
       - name: Create Release
+        shell: pwsh
         run: |
           $short_sha="${{ github.sha }}".Substring(0,7)
-          gh release create ${{ steps.tag_version.outputs.new_tag }}-$short_sha ./builds/Release/net472/KeyboardOSC.dll ./BepInEx.cfg --title "KeyboardOSC Build $short_sha" --prerelease --notes "${{ steps.tag_version.outputs.changelog }}"
+          $version="${{ steps.version.outputs.version }}"
+          $tag="$version+$short_sha"
+          $changelog = "${{ steps.changelog.outputs.notes }}"
+          
+          $releaseNotes = @"
+## KeyboardOSC $tag
+
+**Commit:** ${{ github.sha }}
+
+---
+
+$changelog
+"@
+          
+          Write-Host "Creating release with tag $tag"
+          
+          # Save notes to a temporary file to avoid command line length issues
+          $notesFile = "release-notes.md"
+          $releaseNotes | Out-File -FilePath $notesFile -Encoding UTF8
+          
+          gh release create $tag ./builds/Release/net472/KeyboardOSC.dll ./BepInEx.cfg --title "KeyboardOSC $tag" --prerelease --notes-file $notesFile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
