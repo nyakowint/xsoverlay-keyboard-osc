@@ -1,5 +1,8 @@
 name: Build & Release
 
+permissions:
+  contents: write  # needed for creating releases
+
 concurrency:
   group: "build"
   cancel-in-progress: true
@@ -9,9 +12,9 @@ on:
     branches:
       - main
     paths-ignore:
-      - '**.md'
-      - '**.js'
-      - '**.ps1'
+      - '**/*.md'
+      - '**/*.js'
+      - '**/*.ps1'
   workflow_dispatch:
 jobs:
   build:
@@ -35,7 +38,7 @@ jobs:
 
       - name: Add Bepis NuGet & Restore dependencies
         run: |
-          dotnet nuget add source https://nuget.bepinex.dev/v3/index.json
+          dotnet nuget add source https://nuget.bepinex.dev/v3/index.json --name BepInEx --store-password-in-clear-text || echo "NuGet source already exists"
           dotnet restore
 
       - name: Build
@@ -49,47 +52,59 @@ jobs:
           if (-Not (Test-Path VERSION)) { Write-Error "VERSION file not found" }
           $version = (Get-Content VERSION -Raw).Trim()
           if (-not $version) { Write-Error "VERSION file is empty" }
-          echo "version=$version" >> $env:GITHUB_OUTPUT
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
-      # Read changelog content
+      # Read changelog content (multiline-safe)
       - name: Read changelog
         id: changelog
         shell: pwsh
         run: |
           $changelogPath = "CHANGELOG.md"
-          
           if (Test-Path $changelogPath) {
-            $content = Get-Content $changelogPath -Raw
             Write-Host "Found CHANGELOG.md, using its content"
-            # Escape special characters for GitHub Actions
-            $content = $content -replace '%', '%25'
-            $content = $content -replace '\n', '%0A'
-            $content = $content -replace '\r', '%0D'
-            echo "notes=$content" >> $env:GITHUB_OUTPUT
+            $content = Get-Content $changelogPath -Raw
           } else {
             Write-Host "CHANGELOG.md not found, using default notes"
-            $notes = "Automated build"
-            echo "notes=$notes" >> $env:GITHUB_OUTPUT
+            $content = "Automated build"
+          }
+          $delimiter = "EOF_$(Get-Random)"
+          "notes<<$delimiter" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          $content | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          $delimiter | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Verify artifact exists
+        shell: pwsh
+        run: |
+          $artifact = Join-Path $PWD 'builds/Release/net472/KeyboardOSC.dll'
+          if (-not (Test-Path $artifact)) {
+            Write-Host "Directory listing for builds/Release/net472:" 
+            Get-ChildItem -Recurse builds/Release/net472 | ForEach-Object { $_.FullName }
+            Write-Error "Artifact not found at $artifact"
+          } else {
+            Write-Host "Found artifact: $artifact"
           }
 
       # Create a GitHub Release using VERSION + short commit SHA as tag (e.g. 1.2.5+abcdef0)
       - name: Create Release
         shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $short_sha="${{ github.sha }}".Substring(0,7)
-          $version="${{ steps.version.outputs.version }}"
-          $tag="$version+$short_sha"
-          $changelog = "${{ steps.changelog.outputs.notes }}"
+          $short_sha = "${{ github.sha }}".Substring(0,7)
+          $tag = "${{ steps.version.outputs.version }}+$short_sha"
           
-          $releaseNotes = @"
-## KeyboardOSC $tag
-
-**Commit:** ${{ github.sha }}
-
----
-
-$changelog
-"@
+          # Read changelog from file since multiline env vars can be problematic
+          $changelogPath = "CHANGELOG.md"
+          if (Test-Path $changelogPath) {
+            $changelog = Get-Content $changelogPath -Raw
+          } else {
+            $changelog = "Automated build"
+          }
+          
+          $releaseNotes = "## KeyboardOSC $tag`n`n"
+          $releaseNotes += "**Commit:** ${{ github.sha }}`n`n"
+          $releaseNotes += "---`n`n"
+          $releaseNotes += $changelog
           
           Write-Host "Creating release with tag $tag"
           
@@ -98,5 +113,3 @@ $changelog
           $releaseNotes | Out-File -FilePath $notesFile -Encoding UTF8
           
           gh release create $tag ./builds/Release/net472/KeyboardOSC.dll ./BepInEx.cfg --title "KeyboardOSC $tag" --prerelease --notes-file $notesFile
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
