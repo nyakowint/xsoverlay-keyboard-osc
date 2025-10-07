@@ -24,63 +24,60 @@ public static class Patches
 
         #region Patch Key Presses
 
-        var sendKeyMethod = AccessTools.Method(typeof(KeyboardInputHandler), "SendKey");
+        var sendKeyMethod = Tools.SafeMethod(typeof(KeyboardInputHandler), "SendKey", required: true);
         var sendKeyPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(KeyboardPatch)));
-        Harmony.Patch(sendKeyMethod, sendKeyPatch);
+        if (sendKeyMethod != null) Harmony.Patch(sendKeyMethod, sendKeyPatch);
 
         #endregion
 
         #region Stop inputs being sent to overlays
 
         // stop inputs being sent to overlays
-        var keyPress = AccessTools.Method(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyPress),
-            new[] { typeof(VirtualKeyCode) });
-        var keyDown = AccessTools.Method(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyDown),
-            new[] { typeof(VirtualKeyCode) });
-        var keyUp = AccessTools.Method(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyUp),
-            new[] { typeof(VirtualKeyCode) });
+        var keyPress = Tools.SafeMethod(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyPress), new[] { typeof(VirtualKeyCode) });
+        var keyDown = Tools.SafeMethod(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyDown), new[] { typeof(VirtualKeyCode) });
+        var keyUp = Tools.SafeMethod(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyUp), new[] { typeof(VirtualKeyCode) });
         var blockInputPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(BlockInputPatch)));
 
-        Harmony.Patch(keyPress, prefix: blockInputPatch);
-        Harmony.Patch(keyDown, prefix: blockInputPatch);
-        Harmony.Patch(keyUp, prefix: blockInputPatch);
+        if (keyPress != null) Harmony.Patch(keyPress, prefix: blockInputPatch);
+        if (keyDown != null) Harmony.Patch(keyDown, prefix: blockInputPatch);
+        if (keyUp != null) Harmony.Patch(keyUp, prefix: blockInputPatch);
 
         #endregion
 
 
         // Scale bar with keyboard
         var scaleMethod =
-            AccessTools.Method(typeof(WindowMovementManager), nameof(WindowMovementManager.DoScaleWindowFixed));
+            Tools.SafeMethod(typeof(WindowMovementManager), nameof(WindowMovementManager.DoScaleWindowFixed));
         var scalePatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(ScalePatch)));
-        Harmony.Patch(scaleMethod, null, scalePatch);
+        if (scaleMethod != null) Harmony.Patch(scaleMethod, null, scalePatch);
 
         // gosh i love enumerators (fix for a problem i created lol)
-        var attachMethod = AccessTools.Method(typeof(WindowMovementManager), "DelayedTransformSetToTarget");
+        var attachMethod = Tools.SafeMethod(typeof(WindowMovementManager), "DelayedTransformSetToTarget");
         var attachPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(AttachedMovePatch)));
-        Harmony.Patch(attachMethod, null, attachPatch);
+        if (attachMethod != null) Harmony.Patch(attachMethod, null, attachPatch);
 
         // Disable analytics by default (Xiexe loves seeing my plugin errors im sure XD)
         // can be turned back on after launching if you want to send him stuff for some reason
-        var initAnalytics = AccessTools.Method(typeof(AnalyticsManager), "Initialize");
+        var initAnalytics = Tools.SafeMethod(typeof(AnalyticsManager), "Initialize");
         var analyticsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(AnalyticsPatch)));
-        Harmony.Patch(initAnalytics, postfix: analyticsPatch);
+        if (initAnalytics != null) Harmony.Patch(initAnalytics, postfix: analyticsPatch);
 
 
         #region Settings UI Related Patches
 
         var toggleAppSettings =
-            AccessTools.Method(typeof(Overlay_Manager), nameof(Overlay_Manager.ToggleEditMode));
+            Tools.SafeMethod(typeof(Overlay_Manager), nameof(Overlay_Manager.ToggleEditMode));
         var settingsOverlayPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(SettingsOverlayPatch)));
 
-        var setSettings = AccessTools.Method(typeof(XSettingsManager), nameof(XSettingsManager.SetSetting));
+        var setSettings = Tools.SafeMethod(typeof(XSettingsManager), nameof(XSettingsManager.SetSetting));
         var setSettingsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(SetSettingPatch)));
 
-        var reqSettings = AccessTools.Method(typeof(ApiHandler), "OnRequestCurrentSettings");
+        var reqSettings = Tools.SafeMethod(typeof(ApiHandler), "OnRequestCurrentSettings");
         var reqSettingsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(RequestSettingsPatch)));
 
-        Harmony.Patch(toggleAppSettings, postfix: settingsOverlayPatch);
-        Harmony.Patch(setSettings, setSettingsPatch);
-        Harmony.Patch(reqSettings, reqSettingsPatch);
+        if (toggleAppSettings != null) Harmony.Patch(toggleAppSettings, postfix: settingsOverlayPatch);
+        if (setSettings != null) Harmony.Patch(setSettings, setSettingsPatch);
+        if (reqSettings != null) Harmony.Patch(reqSettings, reqSettingsPatch);
 
         #endregion
     }

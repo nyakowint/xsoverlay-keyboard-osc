@@ -30,10 +30,10 @@ public static class ChatMode
         var scanCode = eventData.Sender.UsingRawVirtualKeyCode
             ? (uint)eventData.KeyCode[0]
             : eventData.Sender.ScanCode[0];
-        var shiftedField = AccessTools.Field(typeof(KeyboardKey), "IsShifted");
-        var altedField = AccessTools.Field(typeof(KeyboardKey), "IsAlted");
-        var isShifted = (bool)shiftedField.GetValue(eventData.Sender);
-        var isAlted = (bool)altedField.GetValue(eventData.Sender); // altGr
+        var shiftedField = Tools.SafeField(typeof(KeyboardKey), "IsShifted");
+        var altedField = Tools.SafeField(typeof(KeyboardKey), "IsAlted");
+        var isShifted = shiftedField != null && (bool)shiftedField.GetValue(eventData.Sender);
+        var isAlted = altedField != null && (bool)altedField.GetValue(eventData.Sender); // altGr
 
         foreach (var key in eventData.KeyCode)
         {
@@ -183,7 +183,7 @@ public static class ChatMode
         _isSilentMsg = false;
         _isFirstMsg = true;
         UpdateChatColor();
-        Plugin.ReleaseStickyKeys.Invoke(Plugin.Instance.inputHandler, null);
+        Plugin.ReleaseStickyKeys?.Invoke(Plugin.Instance.inputHandler, null);
     }
 
     private static void SendTyping(bool typing)
@@ -197,8 +197,15 @@ public static class ChatMode
         _oscBarText = barText;
         _charCounter = charCounter;
         _eventsTimer.Elapsed += TimerElapsed;
-        var stickyKeysField = AccessTools.Field(typeof(KeyboardInputHandler), "CurrentlyDownStickyKeys");
-        _currentlyDownStickyKeys = (List<KeyboardKey>)stickyKeysField.GetValue(Plugin.Instance.inputHandler);
+        var stickyKeysField = Tools.SafeField(typeof(KeyboardInputHandler), "CurrentlyDownStickyKeys");
+        if (stickyKeysField != null)
+        {
+            _currentlyDownStickyKeys = (List<KeyboardKey>)stickyKeysField.GetValue(Plugin.Instance.inputHandler);
+        }
+        else
+        {
+            Logger.LogWarning("CurrentlyDownStickyKeys field not found; Ctrl-detection will not function correctly.");
+        }
     }
 
     private static void UpdateChatColor()

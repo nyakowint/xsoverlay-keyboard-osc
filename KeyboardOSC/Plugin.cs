@@ -82,7 +82,7 @@ namespace KeyboardOSC
             Logger.LogWarning("!! / Please remove KeyboardChatbox before reporting bugs to XSOverlay developers! \\ !!");
             Console.Title = "KeyboardOSC - XSOverlay";
 
-            ReleaseStickyKeys = AccessTools.Method(typeof(KeyboardInputHandler), "ReleaseStickyKeys");
+            ReleaseStickyKeys = Tools.SafeMethod(typeof(KeyboardInputHandler), "ReleaseStickyKeys");
             Patches.PatchAll();
 
             ServerClientBridge.Instance.Api.Commands["Keyboard"] = delegate
@@ -251,9 +251,23 @@ namespace KeyboardOSC
             obwTransform.position = keyboardPos.TransformDirection(0, 0.01f, 0);
             obwTransform.rotation = new Quaternion(0, 0, 0, 0);
 
-            var kbOpacity = (Slider)AccessTools.Field(typeof(XSettingsManager), "KeyboardOpacity")
-                .GetValue(XSettingsManager.Instance);
-            kbOpacity.onValueChanged.AddListener(value => { oscBarWindow.opacity = value; });
+            var kbOpacityField = Tools.SafeField(typeof(XSettingsManager), "KeyboardOpacity");
+            if (kbOpacityField != null)
+            {
+                var kbOpacity = (Slider)kbOpacityField.GetValue(XSettingsManager.Instance);
+                if (kbOpacity != null)
+                {
+                    kbOpacity.onValueChanged.AddListener(value => { oscBarWindow.opacity = value; });
+                }
+                else
+                {
+                    Logger.LogWarning("KeyboardOpacity slider instance was null; opacity sync disabled.");
+                }
+            }
+            else
+            {
+                Logger.LogWarning("KeyboardOpacity field not found; bar opacity will not sync.");
+            }
 
             XSOEventSystem.OnGrabbedOrDroppedOverlay += (targetOverlay, _, grabbed) =>
             {
@@ -365,7 +379,7 @@ namespace KeyboardOSC
 
         public void ToggleChatMode()
         {
-            ReleaseStickyKeys.Invoke(inputHandler, null);
+            ReleaseStickyKeys?.Invoke(inputHandler, null);
 
             ChatModeActive = !ChatModeActive;
             oscBarWindowObj.SetActive(ChatModeActive);

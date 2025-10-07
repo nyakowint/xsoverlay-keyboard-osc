@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using BepInEx;
+using HarmonyLib; 
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using WindowsInput.Native;
@@ -94,6 +95,12 @@ public static class Tools
 
     private const string VersionUrl = "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/VERSION";
 
+    static Tools()
+    {
+        // Initialize keyboard layout once on load
+        RefreshKeyboardLayout();
+    }
+
     public static async Task CheckVersion()
     {
         var logger = Plugin.PluginLogger;
@@ -105,21 +112,35 @@ public static class Tools
         {
             var response = await client.GetStringAsync(VersionUrl);
             var remoteVersion = response.Trim();
-            
             if (string.IsNullOrEmpty(remoteVersion))
             {
                 logger.LogError("VERSION file is empty or invalid.");
                 return;
             }
 
-            logger.LogInfo($"Remote version: {remoteVersion}, Local version: {Plugin.PluginVersion}");
-            
-            if (Version.Parse(remoteVersion) > Version.Parse(Plugin.PluginVersion))
+            if (remoteVersion.StartsWith("v", StringComparison.OrdinalIgnoreCase))
+                remoteVersion = remoteVersion.Substring(1);
+
+            if (!Version.TryParse(remoteVersion, out var remoteVerObj))
             {
-                UpdateCheckResult = new KeyValuePair<bool, string>(true, remoteVersion);
-                logger.LogInfo($"New version available! {remoteVersion}");
+                logger.LogError($"Failed to parse remote version string: '{remoteVersion}'");
+                return;
+            }
+
+            if (!Version.TryParse(Plugin.PluginVersion, out var localVerObj))
+            {
+                logger.LogWarning($"Local plugin version '{Plugin.PluginVersion}' could not be parsed, skipping comparison.");
+                return;
+            }
+
+            logger.LogInfo($"Remote version: {remoteVerObj}, Local version: {localVerObj}");
+
+            if (remoteVerObj > localVerObj)
+            {
+                UpdateCheckResult = new KeyValuePair<bool, string>(true, remoteVerObj.ToString());
+                logger.LogInfo($"New version available! {remoteVerObj}");
                 ThreadingHelper.Instance.StartSyncInvoke(() => SendNotif("KeyboardChatbox update available!",
-                    $"A new version of KeyboardOSC [ {remoteVersion} ] is available. You are currently using version {Plugin.PluginVersion}. :D"));
+                    $"A new version of KeyboardOSC [ {remoteVerObj} ] is available. You are currently using version {Plugin.PluginVersion}. :D"));
             }
             else
             {
@@ -212,10 +233,66 @@ public static class Tools
         return GetCharsFromKeys(keyCode, scanCode, shift, altGr);
     }
 
+    // Reflection safety helpers
+    public static MethodInfo SafeMethod(Type type, string name, Type[] args = null, bool required = false)
+    {
+        try
+        {
+            var mi = AccessTools.Method(type, name, args);
+            if (mi == null)
+            {
+                Plugin.PluginLogger.LogWarning($"[Reflection] Method not found: {type.FullName}.{name}");
+                if (required)
+                    Plugin.PluginLogger.LogError($"Required method missing; related feature will be disabled.");
+            }
+            return mi;
+        }
+        catch (Exception ex)
+        {
+            Plugin.PluginLogger.LogError($"[Reflection] Error retrieving method {type.FullName}.{name}: {ex.Message}");
+            return null;
+        }
+    }
+
+    public static FieldInfo SafeField(Type type, string name, bool required = false)
+    {
+        try
+        {
+            var fi = AccessTools.Field(type, name);
+            if (fi == null)
+            {
+                Plugin.PluginLogger.LogWarning($"[Reflection] Field not found: {type.FullName}.{name}");
+                if (required)
+                    Plugin.PluginLogger.LogError($"Required field missing; related feature will be disabled.");
+            }
+            return fi;
+        }
+        catch (Exception ex)
+        {
+            Plugin.PluginLogger.LogError($"[Reflection] Error retrieving field {type.FullName}.{name}: {ex.Message}");
+            return null;
+        }
+    }
+
     [DllImport("user32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
     private static extern int ToUnicodeEx(uint wVirtKey, uint wScanCode, byte[] lpKeyState, StringBuilder pwszBuff,
         int cchBuff, uint wFlags, IntPtr dwhkl);
 
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetKeyboardLayout(uint idThread);
+
+    public static void RefreshKeyboardLayout()
+    {
+        try
+        {
+            _currentHkl = GetKeyboardLayout(0);
+            Plugin.PluginLogger?.LogInfo($"[Keyboard] Active layout HKL: 0x{_currentHkl.ToInt64():X16}");
+        }
+        catch (Exception ex)
+        {
+            Plugin.PluginLogger?.LogWarning($"Failed to refresh keyboard layout: {ex.Message}");
+        }
+    }
 
     // REEEEEEE
     private static string GetCharsFromKeys(VirtualKeyCode key, uint scanCode, bool shift, bool altGr)
