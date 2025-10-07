@@ -164,17 +164,22 @@ public static class Tools
         
         return true;
     }
-
-    // didnt think id be reusing this old code lol
+    
     public static Sprite GetSprite(this string resName)
     {
         var texture = GetTexture(resName);
+        if (!texture)
+        {
+            // Fallback: create a 1x1 transparent texture so callers don't NRE
+            texture = new Texture2D(1, 1);
+            texture.SetPixel(0, 0, Color.clear);
+            texture.Apply();
+        }
 
         var rect = new Rect(0.0f, 0.0f, texture.width, texture.height);
         var pivot = new Vector2(0.5f, 0.5f);
         var border = Vector4.zero;
-        var sprite = Sprite.CreateSprite_Injected(texture, ref rect, ref pivot, 100.0f, 0, SpriteMeshType.Tight,
-            ref border, false);
+        var sprite = Sprite.Create(texture, rect, pivot, 100.0f, 0, SpriteMeshType.Tight, border, false);
         sprite.hideFlags |= HideFlags.DontUnloadUnusedAsset;
         return sprite;
     }
