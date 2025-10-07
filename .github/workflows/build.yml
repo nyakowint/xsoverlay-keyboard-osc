@@ -1,7 +1,7 @@
 name: Build & Release
 
 permissions:
-  contents: write  # needed for creating releases
+  contents: write
 
 concurrency:
   group: "build"
@@ -36,80 +36,35 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Add Bepis NuGet & Restore dependencies
+      - name: Restore & add BepInEx feed
+        shell: pwsh
         run: |
-          dotnet nuget add source https://nuget.bepinex.dev/v3/index.json --name BepInEx --store-password-in-clear-text || echo "NuGet source already exists"
+          dotnet nuget add source https://nuget.bepinex.dev/v3/index.json --name BepInEx
           dotnet restore
 
-      - name: Build
+      - name: Build (Release)
         run: dotnet build -c Release --no-restore
 
-      # Read the base version from VERSION file
       - name: Read version
         id: version
         shell: pwsh
         run: |
           if (-Not (Test-Path VERSION)) { Write-Error "VERSION file not found" }
-          $version = (Get-Content VERSION -Raw).Trim()
-          if (-not $version) { Write-Error "VERSION file is empty" }
-          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          $v = (Get-Content VERSION -Raw).Trim()
+          if (-not $v) { Write-Error "VERSION file is empty" }
+          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
-      # Read changelog content (multiline-safe)
-      - name: Read changelog
-        id: changelog
-        shell: pwsh
-        run: |
-          $changelogPath = "CHANGELOG.md"
-          if (Test-Path $changelogPath) {
-            Write-Host "Found CHANGELOG.md, using its content"
-            $content = Get-Content $changelogPath -Raw
-          } else {
-            Write-Host "CHANGELOG.md not found, using default notes"
-            $content = "Automated build"
-          }
-          $delimiter = "EOF_$(Get-Random)"
-          "notes<<$delimiter" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          $content | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          $delimiter | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-
-      - name: Verify artifact exists
-        shell: pwsh
-        run: |
-          $artifact = Join-Path $PWD 'builds/Release/net472/KeyboardOSC.dll'
-          if (-not (Test-Path $artifact)) {
-            Write-Host "Directory listing for builds/Release/net472:" 
-            Get-ChildItem -Recurse builds/Release/net472 | ForEach-Object { $_.FullName }
-            Write-Error "Artifact not found at $artifact"
-          } else {
-            Write-Host "Found artifact: $artifact"
-          }
-
-      # Create a GitHub Release using VERSION + short commit SHA as tag (e.g. 1.2.5+abcdef0)
       - name: Create Release
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $short_sha = "${{ github.sha }}".Substring(0,7)
-          $tag = "${{ steps.version.outputs.version }}+$short_sha"
-          
-          # Read changelog from file since multiline env vars can be problematic
-          $changelogPath = "CHANGELOG.md"
-          if (Test-Path $changelogPath) {
-            $changelog = Get-Content $changelogPath -Raw
-          } else {
-            $changelog = "Automated build"
-          }
-          
-          $releaseNotes = "## KeyboardOSC $tag`n`n"
-          $releaseNotes += "**Commit:** ${{ github.sha }}`n`n"
-          $releaseNotes += "---`n`n"
-          $releaseNotes += $changelog
-          
-          Write-Host "Creating release with tag $tag"
-          
-          # Save notes to a temporary file to avoid command line length issues
-          $notesFile = "release-notes.md"
-          $releaseNotes | Out-File -FilePath $notesFile -Encoding UTF8
-          
-          gh release create $tag ./builds/Release/net472/KeyboardOSC.dll ./BepInEx.cfg --title "KeyboardOSC $tag" --prerelease --notes-file $notesFile
+          $version = "${{ steps.version.outputs.version }}"
+          $short = "${{ github.sha }}".Substring(0,7)
+          $tag = "$version+$short"
+          $dll = 'builds/Release/net472/KeyboardOSC.dll'
+          if (-not (Test-Path $dll)) { Write-Error "Artifact missing: $dll" }
+
+          if (Test-Path CHANGELOG.md) { $notes = Get-Content CHANGELOG.md -Raw } else { $notes = 'Automated build' }
+
+          gh release create $tag $dll --title "KeyboardOSC $tag" --prerelease --notes-file CHANGELOG.md || Write-Error 'Release creation failed'
