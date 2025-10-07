@@ -13,6 +13,7 @@ How many people use this? Let me know with a emoji reaction below or something. 
   - should also make the download count accurate because there AINT NO WAY that 11thousand people dl'd the last release lmao
 - Hopefully fixed the chatbox popping sound being sent with every chatbox update? 
   - If you experience this happening with KBChat still please create an issue!
+- The "Disable max length" setting now actually works... how did i miss that all this time
 
 - The keyboard is getting an webview(?) update next so prepare for things to be broken again :P
     - The next plugin update may take longer due to this

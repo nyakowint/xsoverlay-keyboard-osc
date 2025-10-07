@@ -156,7 +156,7 @@ public static class Tools
     public static bool DownloadModifiedUi()
     {
         var logger = Plugin.PluginLogger;
-        if (Plugin.IsDebugConfig) return true;
+        if (Plugin.IsDebugConfig || Plugin.IsDevBuild) return true;
         using var client = new WebClient();
         try
         {
@@ -169,7 +169,7 @@ public static class Tools
                 client.DownloadString(
                     "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/settingsKO.js");
             
-            var htmlPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/Settings/SettingsKO.html";
+            var htmlPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/SettingsKO.html";
             var jsPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/_Shared/js/settingsKO.js";
 
             logger.LogInfo($"Writing settings HTML to: {htmlPath}");

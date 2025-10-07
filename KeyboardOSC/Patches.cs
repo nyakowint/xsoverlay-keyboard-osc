@@ -33,9 +33,12 @@ public static class Patches
         #region Stop inputs being sent to overlays
 
         // stop inputs being sent to overlays
-        var keyPress = Tools.SafeMethod(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyPress), new[] { typeof(VirtualKeyCode) });
-        var keyDown = Tools.SafeMethod(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyDown), new[] { typeof(VirtualKeyCode) });
-        var keyUp = Tools.SafeMethod(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyUp), new[] { typeof(VirtualKeyCode) });
+        var keyPress = Tools.SafeMethod(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyPress),
+            [typeof(VirtualKeyCode)]);
+        var keyDown = Tools.SafeMethod(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyDown),
+            [typeof(VirtualKeyCode)]);
+        var keyUp = Tools.SafeMethod(typeof(KeyboardSimulator), nameof(KeyboardSimulator.KeyUp),
+            [typeof(VirtualKeyCode)]);
         var blockInputPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(BlockInputPatch)));
 
         if (keyPress != null) Harmony.Patch(keyPress, prefix: blockInputPatch);
@@ -64,18 +67,19 @@ public static class Patches
 
 
         #region Settings UI Related Patches
-
+        
         var toggleAppSettings =
             Tools.SafeMethod(typeof(Overlay_Manager), nameof(Overlay_Manager.ToggleEditMode));
         var settingsOverlayPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(SettingsOverlayPatch)));
+
 
         var setSettings = Tools.SafeMethod(typeof(XSettingsManager), nameof(XSettingsManager.SetSetting));
         var setSettingsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(SetSettingPatch)));
 
         var reqSettings = Tools.SafeMethod(typeof(ApiHandler), "OnRequestCurrentSettings");
         var reqSettingsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(RequestSettingsPatch)));
-
-        if (toggleAppSettings != null) Harmony.Patch(toggleAppSettings, postfix: settingsOverlayPatch);
+        
+        Harmony.Patch(toggleAppSettings, postfix: settingsOverlayPatch);
         if (setSettings != null) Harmony.Patch(setSettings, setSettingsPatch);
         if (reqSettings != null) Harmony.Patch(reqSettings, reqSettingsPatch);
 
@@ -112,10 +116,10 @@ public static class Patches
     public static void SettingsOverlayPatch()
     {
         if (!Plugin.ModifiedUiSuccess || HasSettingsBeenOpenedOnce) return;
-        Plugin.PluginLogger.LogInfo("Replacing settings page url!");
+        Plugin.PluginLogger.LogInfo("[PATCHES] Replacing settings page url!");
         var globalSettings = Overlay_Manager.Instance.GlobalSettingsMenuOverlay;
         var loadString =
-            $"http://localhost:{ExternalMessageHandler.Instance.Config.WebSocketPort + 1}/apps/_UI/Default/Settings/SettingsKO.html";
+            $"http://localhost:{ExternalMessageHandler.Instance.Config.WebSocketPort + 1}/apps/_UI/Default/SettingsKO.html";
         globalSettings.OverlayWebView._webView.WebView.LoadUrl(loadString);
         HasSettingsBeenOpenedOnce = true;
     }
@@ -135,7 +139,7 @@ public static class Patches
         {
             pluginVersion += $" — Update {Tools.UpdateCheckResult.Value} is available!";
         }
-        
+
         // create new UiSettings instance
         var settings = new UiSettings
         {
@@ -155,7 +159,7 @@ public static class Patches
         {
             case "GoToOgSettings":
                 var loadString =
-                    $"http://localhost:{ExternalMessageHandler.Instance.Config.WebSocketPort + 1}/ui/Settings.html";
+                    $"http://localhost:{ExternalMessageHandler.Instance.Config.WebSocketPort + 1}/apps/_UI/Default/Settings.html";
                 Overlay_Manager.Instance.GlobalSettingsMenuOverlay.OverlayWebView._webView.WebView.LoadUrl(loadString);
                 Overlay_Manager.Instance.ToggleApplicationSettings();
                 break;
@@ -168,11 +172,8 @@ public static class Patches
             case "KBTypingIndicator":
                 PluginSettings.SetSetting<bool>("TypingIndicator", value);
                 break;
-            case "KBTwitchSending":
-                PluginSettings.SetSetting<bool>("TwitchSending", value);
-                break;
-            case "KBDisableAffixes":
-                PluginSettings.SetSetting<bool>("DisableAffixes", value);
+            case "KBDisableMaxLength":
+                PluginSettings.SetSetting<bool>("DisableMaxLength", value);
                 break;
             case "KBOpenRepo":
                 Application.OpenURL("https://github.com/nyakowint/xsoverlay-keyboard-osc");
