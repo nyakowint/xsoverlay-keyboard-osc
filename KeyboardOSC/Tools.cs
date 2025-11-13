@@ -286,17 +286,20 @@ public static class Tools
         try
         {
             _currentHkl = GetKeyboardLayout(0);
-            Plugin.PluginLogger?.LogInfo($"[Keyboard] Active layout HKL: 0x{_currentHkl.ToInt64():X16}");
+            Plugin.PluginLogger?.LogInfo($"[Keyboard] Initial layout HKL at startup: 0x{_currentHkl.ToInt64():X16}");
         }
         catch (Exception ex)
         {
-            Plugin.PluginLogger?.LogWarning($"Failed to refresh keyboard layout: {ex.Message}");
+            Plugin.PluginLogger?.LogWarning($"Failed to get keyboard layout: {ex.Message}");
         }
     }
 
     // REEEEEEE
     private static string GetCharsFromKeys(VirtualKeyCode key, uint scanCode, bool shift, bool altGr)
     {
+        // Refresh the keyboard layout on each key press to support layout switching
+        var currentHkl = GetKeyboardLayout(0);
+        
         StringBuilder stringBuilder = new StringBuilder(256);
         byte[] array = new byte[256];
         if (shift)
@@ -310,7 +313,7 @@ public static class Tools
             array[18] = byte.MaxValue;
         }
 
-        int num = ToUnicodeEx((uint) key, scanCode, array, stringBuilder, stringBuilder.Capacity, 0u, _currentHkl);
+        int num = ToUnicodeEx((uint) key, scanCode, array, stringBuilder, stringBuilder.Capacity, 0u, currentHkl);
         if (num == k_SUCCESS)
         {
             return stringBuilder.ToString();
