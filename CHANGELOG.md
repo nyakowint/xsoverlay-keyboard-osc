@@ -1,31 +1,10 @@
+Version 1.2.6 improves keyboard chatbox input for international keyboard layouts.
 
-This version includes fixes for Build 680 and is not backward compatible.
+**If your language uses an IME** such as Japanese, Chinese, or Korean, support is not guaranteed. 
 
-How many people use this? Let me know with a emoji reaction below or something. seems like an unpopular github feature thats why im using it also i was curious
+It is difficult to implement IME support due to how we capture and intercept inputs from XSOverlay's keyboard.
+If you have any comments or insights on how to improve IME support, please open an issue or comment on https://github.com/nyakowint/xsoverlay-keyboard-osc/issues/6 !
 
-
-- The install script now handles install, uninstall, and updating the plugin!
-- Added a bunch of failsafes and error handling to hopefully prevent lockups. 
-  - You can have your keyboard and settings back now. I think.
-- Enabled the console window for all new plugin installs. This could help with random errors that pop up after updates.
-    - if you want to enable it for your install, you can find it in `BepInEx\config\BepInEx.cfg`
-    - or replace yours w the one in this release
-- Simplified version and update checking. 
-  - In short we don't compare entire assemblies anymore lol. 
-  - should also make the download count accurate because there AINT NO WAY that 11thousand people dl'd the last release lmao
-- Hopefully fixed the chatbox popping sound being sent with every chatbox update? 
-  - If you experience this happening with KBChat still please create an issue!
-- The "Disable max length" setting now actually works... how did i miss that all this time
-
-- The keyboard is getting an webview(?) update next so prepare for things to be broken again :P
-    - The next plugin update may take longer due to this
-- Twitch integration had some issues that would take longer than a day to fix so it was temporarily(?) removed.
-  - i am only one person (kinda). the less things to maintain the better
-  - if there is enough interest it will return sooner. otherwise it will be reworked at some point
-
-this list is not exhaustive but i think i got everything.
-
-If you experience any issues please first ensure they are not an XSOverlay bug by removing KeyboardOSC!
-After doing that if the issue persists create a discussion post (for problems/support) or an issue on this repo.
-
-[Install Script](https://github.com/nyakowint/xsoverlay-keyboard-osc#how-to-install)
+In the meantime, if you are looking to input IME text, you can try these workarounds:
+- Copy your message from a supported text field in windows, then paste into either chatbox using <kbd>CTRL</kbd> + <kbd>V</kbd> while the bar is activated.
+- There is a well-made *paid* program on BOOTH that supports IME input for VRChat: https://citrinelab.booth.pm/items/7047187
