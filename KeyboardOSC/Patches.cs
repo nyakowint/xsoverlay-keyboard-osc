@@ -67,7 +67,7 @@ public static class Patches
 
 
         #region Settings UI Related Patches
-        
+
         var toggleAppSettings =
             Tools.SafeMethod(typeof(Overlay_Manager), nameof(Overlay_Manager.ToggleEditMode));
         var settingsOverlayPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(SettingsOverlayPatch)));
@@ -78,7 +78,7 @@ public static class Patches
 
         var reqSettings = Tools.SafeMethod(typeof(ApiHandler), "OnRequestCurrentSettings");
         var reqSettingsPatch = new HarmonyMethod(typeof(Patches).GetMethod(nameof(RequestSettingsPatch)));
-        
+
         Harmony.Patch(toggleAppSettings, postfix: settingsOverlayPatch);
         if (setSettings != null) Harmony.Patch(setSettings, setSettingsPatch);
         if (reqSettings != null) Harmony.Patch(reqSettings, reqSettingsPatch);
@@ -208,7 +208,14 @@ public static class Patches
             VirtualKeyCode.MEDIA_NEXT_TRACK, VirtualKeyCode.MEDIA_PREV_TRACK,
             // and finally arrow keys if needed
             VirtualKeyCode.UP, VirtualKeyCode.DOWN,
-            VirtualKeyCode.LEFT, VirtualKeyCode.RIGHT
+            VirtualKeyCode.LEFT, VirtualKeyCode.RIGHT,
+            
+            // ime related keys
+            VirtualKeyCode.KANA, VirtualKeyCode.KANJI, VirtualKeyCode.HANGUL,
+            VirtualKeyCode.HANGEUL, VirtualKeyCode.HANJA, VirtualKeyCode.FINAL,
+            VirtualKeyCode.JUNJA, VirtualKeyCode.CONVERT, VirtualKeyCode.NONCONVERT, 
+            VirtualKeyCode.MODECHANGE, VirtualKeyCode.ACCEPT,
+            VirtualKeyCode.PROCESSKEY, // Critical: IME is processing the key
         };
         return passthroughKeys.Contains(keyCode);
     }
