@@ -215,7 +215,7 @@ public static class Patches
             VirtualKeyCode.HANGEUL, VirtualKeyCode.HANJA, VirtualKeyCode.FINAL,
             VirtualKeyCode.JUNJA, VirtualKeyCode.CONVERT, VirtualKeyCode.NONCONVERT, 
             VirtualKeyCode.MODECHANGE, VirtualKeyCode.ACCEPT,
-            VirtualKeyCode.PROCESSKEY, // Critical: IME is processing the key
+            VirtualKeyCode.PROCESSKEY,
         };
         return passthroughKeys.Contains(keyCode);
     }
