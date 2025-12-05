@@ -1,4 +1,4 @@
-Version 1.2.6 improves keyboard chatbox input for international keyboard layouts.
+Version 1.2.7 (and 1.2.6) improves keyboard chatbox input for international keyboard layouts.
 
 **If your language uses an IME** such as Japanese, Chinese, or Korean, support is not guaranteed. 
 
