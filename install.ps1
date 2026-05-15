@@ -5,15 +5,16 @@ $ErrorActionPreference = 'Stop'
 function Show-Menu {
     Clear-Host
     Write-Host "=====================================" -ForegroundColor Cyan
-    Write-Host "   KeyboardChatbox Installer" -ForegroundColor Cyan
+    Write-Host "   XSOverlay Keyboard Chatbox Installer" -ForegroundColor Cyan
     Write-Host "=====================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Please select an option using your number keys:" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "  1. Install" -ForegroundColor Green
     Write-Host "  2. Update" -ForegroundColor Blue
-    Write-Host "  3. Remove (Uninstall)" -ForegroundColor Red
-    Write-Host "  4. Exit" -ForegroundColor Gray
+    Write-Host "  3. Remove BepInEx & Plugins (Uninstall)" -ForegroundColor Red
+    Write-Host "  4. Install XSO Font Changer by chaixshot (fix fonts being squares in some locales)" -ForegroundColor Gray
+    Write-Host "  5. Exit" -ForegroundColor Gray
     Write-Host ""
     Write-Host "=====================================" -ForegroundColor Cyan
     Write-Host ""
@@ -69,16 +70,16 @@ function Get-XSOverlayPath {
     } while ($true)
 }
 
-function Install-Mod {
+function Install-Plugin {
     param($xsoPath)
     
     Write-Host ""
-    Write-Host "=== Installing KeyboardOSC Mod ===" -ForegroundColor Green
+    Write-Host "=== Installing KeyboardChatbox plugin ===" -ForegroundColor Green
     Write-Host ""
     
     $bepInExUrl = "https://github.com/BepInEx/BepInEx/releases/download/v5.4.22/BepInEx_x64_5.4.22.0.zip"
     $cfgUrl = "https://github.com/nyakowint/xsoverlay-keyboard-osc/releases/latest/download/BepInEx.cfg"
-    $modUrl = "https://github.com/nyakowint/xsoverlay-keyboard-osc/releases/latest/download/KeyboardOSC.dll"
+    $pluginUrl = "https://github.com/nyakowint/xsoverlay-keyboard-osc/releases/latest/download/KeyboardOSC.dll"
     
     $tempZip = Join-Path $env:TEMP "BepInEx.zip"
     
@@ -105,9 +106,9 @@ function Install-Mod {
         New-Item -ItemType Directory -Path $configPath -Force | Out-Null
         New-Item -ItemType Directory -Path $pluginsPath -Force | Out-Null
         
-        Write-Host "Downloading KeyboardOSC mod..." -ForegroundColor Cyan
+        Write-Host "Downloading KeyboardChatbox plugin..." -ForegroundColor Cyan
         Invoke-WebRequest -Uri $cfgUrl -OutFile (Join-Path $configPath "BepInEx.cfg")
-        Invoke-WebRequest -Uri $modUrl -OutFile (Join-Path $pluginsPath "KeyboardOSC.dll")
+        Invoke-WebRequest -Uri $pluginUrl -OutFile (Join-Path $pluginsPath "KeyboardOSC.dll")
         
         Write-Host ""
         Write-Host "=====================================" -ForegroundColor Green
@@ -124,15 +125,15 @@ function Install-Mod {
     }
 }
 
-function Update-Mod {
+function Update-Plugin {
     param($xsoPath)
     
     Write-Host ""
-    Write-Host "=== Updating KeyboardOSC Mod ===" -ForegroundColor Blue
+    Write-Host "=== Updating KeyboardChatbox plugin ===" -ForegroundColor Blue
     Write-Host ""
     
     $cfgUrl = "https://github.com/nyakowint/xsoverlay-keyboard-osc/releases/latest/download/BepInEx.cfg"
-    $modUrl = "https://github.com/nyakowint/xsoverlay-keyboard-osc/releases/latest/download/KeyboardOSC.dll"
+    $pluginUrl = "https://github.com/nyakowint/xsoverlay-keyboard-osc/releases/latest/download/KeyboardOSC.dll"
     
     $configPath = Join-Path $xsoPath "BepInEx\config"
     $pluginsPath = Join-Path $xsoPath "BepInEx\plugins"
@@ -146,7 +147,7 @@ function Update-Mod {
         
         Write-Host "Downloading latest version..." -ForegroundColor Cyan
         Invoke-WebRequest -Uri $cfgUrl -OutFile (Join-Path $configPath "BepInEx.cfg")
-        Invoke-WebRequest -Uri $modUrl -OutFile (Join-Path $pluginsPath "KeyboardOSC.dll")
+        Invoke-WebRequest -Uri $pluginUrl -OutFile (Join-Path $pluginsPath "KeyboardOSC.dll")
         
         Write-Host ""
         Write-Host "=====================================" -ForegroundColor Green
@@ -161,17 +162,17 @@ function Update-Mod {
     }
 }
 
-function Remove-Mod {
+function Remove-Plugin {
     param($xsoPath)
     
     Write-Host ""
-    Write-Host "=== Removing KeyboardOSC Mod ===" -ForegroundColor Red
+    Write-Host "=== Removing KeyboardChatbox plugin ===" -ForegroundColor Red
     Write-Host ""
     
     $bepInExPath = Join-Path $xsoPath "BepInEx"
     
     if (-not (Test-Path $bepInExPath)) {
-        Write-Host "BepInEx/KeyboardOSC does not appear to be installed." -ForegroundColor Yellow
+        Write-Host "BepInEx/KeyboardChatbox does not appear to be installed." -ForegroundColor Yellow
         return
     }
     
@@ -181,7 +182,7 @@ function Remove-Mod {
     
     if ($confirm -eq 'y' -or $confirm -eq 'Y') {
         try {
-            Write-Host "Removing BepInEx and all mods..." -ForegroundColor Cyan
+            Write-Host "Removing BepInEx and all plugins..." -ForegroundColor Cyan
             Remove-Item -Path $bepInExPath -Recurse -Force
             
             # Also remove other BepInEx files
@@ -209,31 +210,89 @@ function Remove-Mod {
     }
 }
 
+function Install-Font-Plugin {
+    param($xsoPath)
+    
+    Write-Host ""
+    Write-Host "=== Installing xsoverlay-font-changer plugin ===" -ForegroundColor Green
+    Write-Host "Font changer is created & maintained at https://github.com/chaixshot/xsoverlay-font-changer, this installer simply provides it for convenience!" -ForegroundColor Yellow
+    Write-Host ""
+    
+    $bepInExUrl = "https://github.com/BepInEx/BepInEx/releases/download/v5.4.22/BepInEx_x64_5.4.22.0.zip"
+    $pluginUrl = "https://github.com/chaixshot/xsoverlay-font-changer/releases/download/1.0.0/xsoverlay_font_changer-1.0.0.zip"
+    
+    $tempZip = Join-Path $env:TEMP "BepInEx.zip"
+    $tempFontZip = Join-Path $env:TEMP "xso-font-changer.zip"
+    
+    try {
+        # Check if BepInEx is already installed
+        $bepInExPath = Join-Path $xsoPath "BepInEx"
+        if (Test-Path $bepInExPath) {
+            Write-Host "BepInEx is already installed. Skipping BepInEx installation..." -ForegroundColor Yellow
+        } else {
+            Write-Host "Downloading BepInEx..." -ForegroundColor Cyan
+            Invoke-WebRequest -Uri $bepInExUrl -OutFile $tempZip
+            
+            Write-Host "Extracting BepInEx..." -ForegroundColor Cyan
+            Expand-Archive -Path $tempZip -DestinationPath $xsoPath -Force
+            Remove-Item -Path $tempZip -Force
+            
+            Write-Host "BepInEx installed successfully!" -ForegroundColor Green
+        }
+        
+        Write-Host "Downloading xsoverlay-font-changer plugin..." -ForegroundColor Cyan
+        Invoke-WebRequest -Uri $pluginUrl -OutFile $tempFontZip
+         
+        Write-Host "Extracting font changer..." -ForegroundColor Cyan
+        Expand-Archive -Path $tempFontZip -DestinationPath $bepInExPath -Force
+        Remove-Item -Path $tempFontZip -Force
+        
+        Write-Host ""
+        Write-Host "=====================================" -ForegroundColor Green
+        Write-Host "Installation complete!" -ForegroundColor Green
+        Write-Host "=====================================" -ForegroundColor Green
+        Write-Host "Check the plugin's README for more info: https://github.com/chaixshot/xsoverlay-font-changer" -ForegroundColor Yellow
+        Write-Host "!! / Please remove plugins before reporting XSOverlay bugs to ensure they are not caused by any installed plugins! \ !!" -ForegroundColor Yellow
+        Write-Host ""
+    }
+    catch {
+        Write-Host ""
+        Write-Host "Error during installation: $_" -ForegroundColor Red
+        Write-Host ""
+    }
+}
+
 # Main script execution
 do {
     Show-Menu
-    $choice = Read-Host "Enter your choice (1-4)"
+    $choice = Read-Host "Enter your choice"
     
     switch ($choice) {
         '1' {
             $xsoPath = Get-XSOverlayPath
-            Install-Mod -xsoPath $xsoPath
+            Install-Plugin -xsoPath $xsoPath
             Write-Host "Press any key to return to menu..." -ForegroundColor Gray
             $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         }
         '2' {
             $xsoPath = Get-XSOverlayPath
-            Update-Mod -xsoPath $xsoPath
+            Update-Plugin -xsoPath $xsoPath
             Write-Host "Press any key to return to menu..." -ForegroundColor Gray
             $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         }
         '3' {
             $xsoPath = Get-XSOverlayPath
-            Remove-Mod -xsoPath $xsoPath
+            Remove-Plugin -xsoPath $xsoPath
             Write-Host "Press any key to return to menu..." -ForegroundColor Gray
             $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
         }
         '4' {
+            $xsoPath = Get-XSOverlayPath
+            Install-Font-Plugin -xsoPath $xsoPath
+            Write-Host "Press any key to return to menu..." -ForegroundColor Gray
+            $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        }
+        '5' {
             Write-Host ""
             Write-Host "Goodbye!" -ForegroundColor Cyan
             Write-Host ""
@@ -241,7 +300,7 @@ do {
         }
         default {
             Write-Host ""
-            Write-Host "Invalid choice. Please select 1-4." -ForegroundColor Red
+            Write-Host "Please select one of the numbered options..." -ForegroundColor Red
             Start-Sleep -Seconds 2
         }
     }
