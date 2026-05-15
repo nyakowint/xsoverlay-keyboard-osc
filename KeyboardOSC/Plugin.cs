@@ -3,8 +3,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using BepInEx;
 using BepInEx.Logging;
-using HarmonyLib;
-using KeyboardOSC;
 using KeyboardOSC.XScripts;
 using TMPro;
 using UnityEngine;
@@ -13,14 +11,14 @@ using Vuplex.WebView;
 using XSOverlay;
 using XSOverlay.WebApp;
 
-[assembly: AssemblyVersion("1.2.7")]
+[assembly: AssemblyVersion("1.3.0")]
 
 namespace KeyboardOSC
 {
     [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", PluginVersion)]
     public class Plugin : BaseUnityPlugin
     {
-        public const string PluginVersion = "1.2.7";
+        public const string PluginVersion = "1.3.0";
         public static Plugin Instance;
         public static ManualLogSource PluginLogger;
 
@@ -46,16 +44,8 @@ namespace KeyboardOSC
 #if DEBUG
             IsDebugConfig = true;
 #elif DEV
+            Logger.LogWarning("!! DEVELOPMENT BUILD !! ");
             Logger.LogWarning("YOU ARE USING A DEVELOPMENT BUILD AND THINGS MAY NOT WORK RIGHT!!"); 
-            Logger.LogWarning("if ur me then go main for vrchillin u dork");
-            // yes this is necessary otherwise i will just ignore it
-            Logger.LogWarning("!! DEVELOPMENT BUILD !! ");
-            Logger.LogWarning("!! DEVELOPMENT BUILD !! ");
-            Logger.LogWarning("!! DEVELOPMENT BUILD !! ");
-            Logger.LogWarning("!! DEVELOPMENT BUILD !! ");
-            Logger.LogWarning("!! DEVELOPMENT BUILD !! ");
-            Logger.LogWarning("!! DEVELOPMENT BUILD !! ");
-            Logger.LogWarning("!! DEVELOPMENT BUILD !! ");
             Logger.LogWarning("!! DEVELOPMENT BUILD !! ");
                 IsDebugConfig = true;
                 IsDevBuild = true;
@@ -81,7 +71,7 @@ namespace KeyboardOSC
             Console.Title = "KeyboardOSC - XSOverlay";
 
             ReleaseStickyKeys = Tools.SafeMethod(typeof(KeyboardInputHandler), "ReleaseStickyKeys");
-            Patches.PatchAll();
+            Patcher.PatchAll();
 
             ServerClientBridge.Instance.Api.Commands["Keyboard"] = delegate
             {
@@ -94,12 +84,11 @@ namespace KeyboardOSC
         {
             _initAttempts++;
             
-            // Failsafe: If this is being called again, something went wrong
+            // If this is being called again something prob went wrong
             if (_hasInitialized)
             {
-                Logger.LogError($"[FAILSAFE] InitializeKeyboard called again (attempt #{_initAttempts})! Previous initialization may have failed silently.");
-                Logger.LogWarning("[FAILSAFE] Falling back to default keyboard behavior without KeyboardOSC features.");
-                // Don't try to initialize again, just let the keyboard open normally
+                Logger.LogError($"[FAILSAFE] InitializeKeyboard called again (attempt #{_initAttempts})! Previous initializations may have failed!");
+                Logger.LogWarning("[FAILSAFE] Falling back to default keyboard behaviors");
                 return;
             }
             
@@ -123,13 +112,13 @@ namespace KeyboardOSC
                 
                 // Mark as successfully initialized
                 _hasInitialized = true;
-                Logger.LogInfo("[Stage 3] Keyboard setup complete!");
+                Logger.LogInfo("[Stage 2] Keyboard setup complete!");
             }
             catch (Exception ex)
             {
                 Logger.LogError($"[CRITICAL] Failed to initialize KeyboardOSC: {ex.Message}");
                 Logger.LogError($"Stack trace: {ex.StackTrace}");
-                Logger.LogWarning("[FAILSAFE] KeyboardOSC features will be disabled. Keyboard will work in default mode.");
+                Logger.LogWarning("[FAILSAFE] KeyboardOSC features will not work!");
                 
                 // Reset the command to fallback behavior
                 ServerClientBridge.Instance.Api.Commands["Keyboard"] = delegate
@@ -157,34 +146,6 @@ namespace KeyboardOSC
             var keyboardWindow = overlayManager.Keyboard_Overlay;
             var keyboardWindowObj = overlayManager.Keyboard_Overlay.gameObject;
             keyboardWindowObj.SetActive(false);
-
-
-            // // TODO: TEST
-            //
-            // Logger.LogWarning("pat setup");
-            // Logger.LogWarning(overlayManager.GlobalSettingsMenuOverlay.gameObject.name);
-            // Logger.LogWarning(overlayManager.GlobalSettingsMenuOverlay.gameObject.transform.parent.name);
-            // var patWindow = Instantiate(overlayManager.GlobalSettingsMenuOverlay.gameObject,
-            //     overlayManager.GlobalSettingsMenuOverlay.transform.parent);
-            // Destroy(patWindow.GetComponent<OverlayWebView>());
-            // Destroy(patWindow.transform.GetChild(0).gameObject);
-            //
-            // patWindow.AddComponent<OverlayTopLevelObject>();
-            // // https://developer.vuplex.com/webview/WebViewPrefab
-            // var webView = patWindow.AddComponent<OverlayWebView>();
-            // webView.UserInterfaceSelection = OverlayWebView.UserInterfacePaths.URL;
-            // webView.URL = "https://google.com";
-            //
-            // var patOverlay = patWindow.GetComponent<Unity_Overlay>();
-            // patOverlay.overlayName = "kbosc";
-            //
-            //
-            // patOverlay.overlayRootObject = oscBarWindowObj;
-            // patWindow.GetComponent<OverlayIdentifier>().OverlayTopLevelObject = oscBarWindowObj;
-            //
-            // SetupWebView(webView, patWindow, patOverlay);
-            //
-            // // TODO: END TEST
 
             // Create typing bar
             var oscBarRoot = new GameObject("KeyboardOSC Root");
@@ -259,12 +220,12 @@ namespace KeyboardOSC
                 }
                 else
                 {
-                    Logger.LogWarning("KeyboardOpacity slider instance was null; opacity sync disabled.");
+                    Logger.LogError("Couldnt find KeyboardOpacity instance, opacity sync disabled.");
                 }
             }
             else
             {
-                Logger.LogWarning("KeyboardOpacity field not found; bar opacity will not sync.");
+                Logger.LogError("Couldnt find KeyboardOpacity field, opacity sync disabled.");
             }
 
             XSOEventSystem.OnGrabbedOrDroppedOverlay += (targetOverlay, _, grabbed) =>
@@ -358,8 +319,6 @@ namespace KeyboardOSC
                 overlayWebView._overlay.overlayRootObject.SetActive(value: false);
                 overlayWebView.gameObject.SetActive(value: false);
             };
-            /*webView.WebView.FocusChanged += overlayWebView.HandleWebViewFocusChanged;*/
-            /*XSOEventSystem.Current.EventRegisterWebviewOverlay(overlayWebView);*/
         }
 
         public void RepositionBar(Unity_Overlay barOverlay, Unity_Overlay keebOverlay)

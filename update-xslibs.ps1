@@ -1,6 +1,6 @@
 # ai generated script lolol
 # Set the paths for source and destination folders
-$sourceFolder = "C:\Program Files (x86)\Steam\steamapps\common\XSOverlay_Beta\XSOverlay_Data\Managed"
+$sourceFolder = "H:\SteamLibrary\steamapps\common\XSOverlay_Beta\XSOverlay_Data\Managed"
 $destinationFolder = "D:\Stuff\XSOMod\refs"
 
 # Get a list of files in the source folder

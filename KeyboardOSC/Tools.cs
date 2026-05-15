@@ -160,21 +160,13 @@ public static class Tools
         using var client = new WebClient();
         try
         {
-            logger.LogInfo("Downloading modified HTML...");
-            var htmlContent =
-                client.DownloadString(
-                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/SettingsKO.html");
-            logger.LogInfo("Downloading modified JS...");
+            logger.LogInfo("Downloading settingsKO.js...");
             var jsContent =
                 client.DownloadString(
                     "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/settingsKO.js");
-            
-            var htmlPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/SettingsKO.html";
-            var jsPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/_Shared/js/settingsKO.js";
 
-            logger.LogInfo($"Writing settings HTML to: {htmlPath}");
+            var jsPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/_Shared/js/settingsKO.js";
             logger.LogInfo($"Writing settings JS to: {jsPath}");
-            File.WriteAllText(htmlPath, htmlContent);
             File.WriteAllText(jsPath, jsContent);
         }
         catch (Exception exception)
@@ -182,7 +174,7 @@ public static class Tools
             Plugin.PluginLogger.LogError($"Exception downloading modified ui: {exception}");
             return false;
         }
-        
+
         return true;
     }
     
@@ -241,7 +233,7 @@ public static class Tools
             var mi = AccessTools.Method(type, name, args);
             if (mi == null)
             {
-                Plugin.PluginLogger.LogWarning($"[Reflection] Method not found: {type.FullName}.{name}");
+                Plugin.PluginLogger.LogWarning($"[KBOSC:Reflection] Method not found: {type.FullName}.{name}");
                 if (required)
                     Plugin.PluginLogger.LogError($"Required method missing; related feature will be disabled.");
             }
@@ -249,7 +241,7 @@ public static class Tools
         }
         catch (Exception ex)
         {
-            Plugin.PluginLogger.LogError($"[Reflection] Error retrieving method {type.FullName}.{name}: {ex.Message}");
+            Plugin.PluginLogger.LogError($"[KBOSC:Reflection] Error retrieving method {type.FullName}.{name}: {ex.Message}");
             return null;
         }
     }
@@ -261,7 +253,7 @@ public static class Tools
             var fi = AccessTools.Field(type, name);
             if (fi == null)
             {
-                Plugin.PluginLogger.LogWarning($"[Reflection] Field not found: {type.FullName}.{name}");
+                Plugin.PluginLogger.LogWarning($"[KBOSC:Reflection] Field not found: {type.FullName}.{name}");
                 if (required)
                     Plugin.PluginLogger.LogError($"Required field missing; related feature will be disabled.");
             }
@@ -269,7 +261,7 @@ public static class Tools
         }
         catch (Exception ex)
         {
-            Plugin.PluginLogger.LogError($"[Reflection] Error retrieving field {type.FullName}.{name}: {ex.Message}");
+            Plugin.PluginLogger.LogError($"[KBOSC:Reflection] Error retrieving field {type.FullName}.{name}: {ex.Message}");
             return null;
         }
     }

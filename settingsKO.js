@@ -30,7 +30,6 @@ const sidebarButtons = {
     Easter_Eggs: null,
     Support: null,
     Bindings: null,
-    Original_Settings: null
 }
 
 const sidebarButtonIconNames = [
@@ -45,7 +44,6 @@ const sidebarButtonIconNames = [
     "egg-fill",
     "question-circle-fill",
     "dpad-fill",
-    "arrow-left-circle-fill"
 ];
 
 function UIPage(name, sections, uiRoot) {
@@ -55,11 +53,6 @@ function UIPage(name, sections, uiRoot) {
 }
 
 const SettingsLayout = {
-    Original_Settings: {
-        _: {
-            GoToOgSettings: new Ui.Setting(Ui.ComponentType.Button, 'Original Settings Fallback', "Press the below button then reopen settings if the options shown here are not up to date yet. This is experimental and might not work! You will have to restart XSOverlay to change any plugin options.", null, null, null)
-        }
-    },
     Keyboard_OSC: {
         _: {
             KBCheckForUpdates: new Ui.Setting(Ui.ComponentType.Toggle, 'Notify about updates', "The plugin will notify you if there's an update available :D", true),
@@ -537,4 +530,136 @@ function SetMenuStates(data) {
     }
 
     console.log("Settings Updated.");
+}
+
+// When injected into an already-loaded page, the C# injector places a marker element first.
+// We detect it here and graft our tab into the existing settings page rather than re-rendering.
+if (document.getElementById('_kosc_injected')) {
+    InjectKBOSCTab();
+}
+
+function InjectKBOSCTab() {
+    var sidebarList = document.querySelector('.side-bar-button-container');
+    var pageWrapper = document.querySelector('.page-wrapper');
+    if (!sidebarList || !pageWrapper) {
+        console.error('[KBOSC] Could not find settings page structure to inject into');
+        return;
+    }
+
+    // --- Sidebar button (inserted at top) ---
+    var kboscBtn = document.createElement('button');
+    kboscBtn.className = 'side-bar-button';
+
+    var icon = document.createElement('img');
+    icon.className = 'side-bar-button-icon theme-font-contrast bi-keyboard-fill';
+    kboscBtn.appendChild(icon);
+
+    var label = document.createElement('div');
+    label.className = 'side-bar-button-text';
+    label.innerHTML = 'Keyboard OSC';
+    kboscBtn.appendChild(label);
+
+    var divider = document.createElement('div');
+    divider.className = 'sidebar-divider';
+    sidebarList.insertBefore(divider, sidebarList.firstChild);
+    sidebarList.insertBefore(kboscBtn, sidebarList.firstChild);
+
+    // --- KBO page (appended to page wrapper, hidden by default) ---
+    var kboscPage = Ui.CreateElement(pageWrapper, Ui.HtmlType.div, ['page-container', 'theme-dark']);
+    kboscPage.id = 'Page_Keyboard_OSC';
+    kboscPage.style.display = 'none';
+
+    var pageHeader = Ui.CreateElement(kboscPage, Ui.HtmlType.div, ['page-header']);
+    var pageHeaderText = Ui.CreateElement(pageHeader, Ui.HtmlType.div, ['page-header-text']);
+    pageHeaderText.innerHTML = 'Keyboard OSC';
+
+    var sectionLayout = SettingsLayout.Keyboard_OSC._;
+    var createdSection = new Ui.Section('_', Object.keys(sectionLayout).length, kboscPage);
+    var index = 0;
+    for (var setting in sectionLayout) {
+        var def = sectionLayout[setting];
+        def.internalName = setting;
+        def.sectionID = '_';
+
+        switch (def.type) {
+            case Ui.ComponentType.Text:
+                Ui.Description(createdSection.Background, def.description, `${setting}_Desc`);
+                break;
+            case Ui.ComponentType.Button:
+                Ui.Button(def, createdSection.Background);
+                break;
+            case Ui.ComponentType.Toggle:
+                Ui.Toggle(def, def.displayName, def.defaultState, def.opts, createdSection.Background);
+                break;
+            case Ui.ComponentType.Slider:
+                Ui.Slider(def, def.displayName, def.defaultState, def.opts, def.opts1, createdSection.Background, 300);
+                break;
+            case Ui.ComponentType.Dropdown:
+                Ui.Dropdown(def, def.displayName, def.defaultState, def.opts, createdSection.Background, 300);
+                break;
+        }
+
+        if (def.description !== '' && def.type !== Ui.ComponentType.Text)
+            Ui.Description(createdSection.Background, def.description, `${setting}_Desc`);
+
+        index++;
+        if (index < Object.keys(sectionLayout).length)
+            Ui.Divider(createdSection.Background, 'divider', setting);
+    }
+
+    // --- Tab switching ---
+    kboscBtn.addEventListener('click', function () {
+        setTimeout(function () { kboscBtn.blur(); }, 150);
+        document.querySelectorAll('.page-container, .page-container-no-overflow').forEach(function (p) {
+            if (p !== kboscPage) p.style.animation = '0.3s ease fade-out forwards';
+        });
+        kboscPage.style.display = '';
+        kboscPage.style.animation = '0.3s ease fade-in forwards';
+        document.querySelectorAll('.side-bar-button').forEach(function (b) {
+            b.classList.remove('side-bar-button-selected');
+            if (b.firstElementChild) b.firstElementChild.classList.remove('selected-icon');
+        });
+        kboscBtn.classList.add('side-bar-button-selected');
+        icon.classList.add('selected-icon');
+    });
+
+    // Hide our page when any other sidebar button is clicked
+    sidebarList.addEventListener('click', function (e) {
+        var btn = e.target.closest('.side-bar-button');
+        if (btn && btn !== kboscBtn) {
+            kboscPage.style.animation = '0.3s ease fade-out forwards';
+            kboscBtn.classList.remove('side-bar-button-selected');
+            icon.classList.remove('selected-icon');
+        }
+    });
+
+    // --- API: tap into the existing socket for KBO settings ---
+    if (Api.Client && Api.Client.Socket) {
+        Api.Client.Socket.addEventListener('message', function (data) {
+            var decoded = Api.Parse(data);
+            if (decoded.Command === 'UpdateSettings') SetKBOMenuStates(decoded.JsonData);
+        });
+        if (Api.Client.Socket.readyState === WebSocket.OPEN)
+            Api.Send(Api.Commands.RequestGetSettings, null, null);
+        else
+            Api.Client.Socket.addEventListener('open', function () {
+                Api.Send(Api.Commands.RequestGetSettings, null, null);
+            }, { once: true });
+    }
+}
+
+function SetKBOMenuStates(data) {
+    for (var key in SettingsLayout.Keyboard_OSC._) {
+        if (data[key] === undefined) continue;
+        var el = document.getElementById(key);
+        if (!el) continue;
+        switch (el.getAttribute('uiType')) {
+            case 'toggle': el.checked = data[key]; break;
+            case 'slider': Ui.UpdateSliderUI(el, data[key]); break;
+        }
+    }
+    if (data.KBVersion) {
+        var kbv = document.getElementById('KBVersion_Desc');
+        if (kbv) kbv.innerHTML = 'Version ' + data.KBVersion;
+    }
 }
