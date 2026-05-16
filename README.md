@@ -1,11 +1,11 @@
 # XSOverlay Keyboard Chatbox
 
-If you use [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/) and want OSC chatbox functionality, or you're migrating from [OVR Toolkit](https://store.steampowered.com/app/1068820/OVR_Toolkit/)'s, 
+If you use [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/) and want OSC chatbox functionality, or you're migrating from [OVR Toolkit](https://store.steampowered.com/app/1068820/OVR_Toolkit/)'s,
 this plugin is for you!
-  
+
 The plugin uses [BepInEx](https://docs.bepinex.dev/index.html) to add our own chatbox above the keyboard!
 
-> [!CAUTION]
+> [!IMPORTANT]
 > Last tested build: Build 680. \
 > Being a mod/plugin, random things might break due to changes by the XSO developer Xiexe! \
 > *(do not report bugs to them without removing your plugins first!)* \
@@ -13,10 +13,10 @@ The plugin uses [BepInEx](https://docs.bepinex.dev/index.html) to add our own ch
 
 ## Preview
 
-|                                                                                                                           |                                                                                                                                      |
-|---------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| ![Icon preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/d43accef-d457-4d00-8b1f-3754e1edaa74) | ![osc bar preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/61d71541-1cda-4222-bdbf-8f96fa602e0b)         |
-| ![Settings preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/53179e68-1f21-46ec-89a7-9f3d649bbc14) | ![Version checker preview](https://github.com/nyakowint/xsoverlay-keyboard-osc/assets/24845294/6aadbcc6-263c-443d-8ffb-fce062c2cbc9) |
+|                                                                                                                                     |                                                                                                                                  |
+|-------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| ![Icon preview](https://github.com/user-attachments/assets/2423b366-f3bb-499d-ac34-12dfc125d6b6)                                    | ![osc bar preview](https://github.com/user-attachments/assets/2800adc4-e107-42eb-b7d3-ca2948cd8c8e)                              |
+| ![Chatbox result preview](https://github.com/user-attachments/assets/ac96da74-53be-4198-906c-a99f89419e5e) | ![Chatbox bar preview](https://github.com/user-attachments/assets/8a6ab58b-9a0b-43e7-96c8-14d2150a64f1) |
 
 ## Install
 
@@ -78,7 +78,7 @@ There are also a few text macro shortcuts built in:
 | `//skull2`  | `☠`              |
 | `//rx3`     | `rawr x3`        |
 
-Note that the emojis do not look good in vrchat's chatbox font at all lmao 
+Note that the emojis do not look good in vrchat's chatbox font at all lmao
 
 ## Troubleshooting
 
