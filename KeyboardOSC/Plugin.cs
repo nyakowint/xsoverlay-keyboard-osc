@@ -55,7 +55,7 @@ namespace KeyboardOSC
             PluginSettings.ConfigFile = Config;
             PluginSettings.Init();
             
-            ModifiedUiSuccess = Tools.DownloadModifiedUi();
+            ModifiedUiSuccess = Tools.WriteInjectedUi();
 
             if (!Environment.CommandLine.Contains("-batchmode") || IsDebugConfig) return;
             Logger.LogWarning("XSOverlay runs in batchmode normally (headless without a window).");

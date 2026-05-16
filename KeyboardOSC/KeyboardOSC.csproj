@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net472</TargetFramework>
+        <TargetFramework>net48</TargetFramework>
         <AssemblyName>KeyboardOSC</AssemblyName>
         <Description>Keyboard mod for XSOverlay</Description>
         <Version>1.0.0</Version>
@@ -25,8 +25,7 @@
         <Exec Command="taskkill /f /im XSOverlay.exe" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ContinueOnError="true"/>
         <Exec Command="taskkill /f /im &quot;XSOverlay Media Manager.exe&quot;" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ContinueOnError="true"/>
         <Exec Command="taskkill /f /im &quot;Vuplex WebView.vuplex&quot;" IgnoreExitCode="true" IgnoreStandardErrorWarningFormat="true" ContinueOnError="true"/>
-        <Exec Command="sleep 0.5"/>
-        <Exec Command="move &quot;$(SolutionDir)builds\Debug\net472\$(ProjectName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\XSOverlay_Beta\BepInEx\plugins&quot;"/>
+        <Exec Command="move &quot;$(SolutionDir)builds\Debug\net48\$(ProjectName).dll&quot; &quot;H:\SteamLibrary\steamapps\common\XSOverlay_Beta\BepInEx\plugins&quot;"/>
     </Target>
     <ItemGroup>
         <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all"/>
@@ -41,6 +40,7 @@
 
     <ItemGroup>
         <EmbeddedResource Include="chat.png"/>
+        <EmbeddedResource Include="chatbox-settings.js" />
     </ItemGroup>
 
     <ItemGroup>

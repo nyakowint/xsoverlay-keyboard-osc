@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -139,8 +138,8 @@ public static class Tools
             {
                 UpdateCheckResult = new KeyValuePair<bool, string>(true, remoteVerObj.ToString());
                 logger.LogInfo($"New version available! {remoteVerObj}");
-                ThreadingHelper.Instance.StartSyncInvoke(() => SendNotif("KeyboardChatbox update available!",
-                    $"A new version of KeyboardOSC [ {remoteVerObj} ] is available. You are currently using version {Plugin.PluginVersion}. :D"));
+                ThreadingHelper.Instance.StartSyncInvoke(() => SendNotif("KeyboardChatbox Update available!",
+                    $"A new version of Keyboard Chatbox [ {remoteVerObj} ] is available. You are currently using version {Plugin.PluginVersion}. :D"));
             }
             else
             {
@@ -153,25 +152,29 @@ public static class Tools
         }
     }
 
-    public static bool DownloadModifiedUi()
+    public static bool WriteInjectedUi()
     {
         var logger = Plugin.PluginLogger;
-        if (Plugin.IsDebugConfig || Plugin.IsDevBuild) return true;
-        using var client = new WebClient();
         try
         {
-            logger.LogInfo("Downloading settingsKO.js...");
-            var jsContent =
-                client.DownloadString(
-                    "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/settingsKO.js");
+            var resourcePath = "KeyboardOSC.chatbox-settings.js";
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourcePath);
+            if (stream == null)
+            {
+                logger.LogError($"Embedded resource \"{resourcePath}\" not found!");
+                return false;
+            }
 
-            var jsPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/_Shared/js/settingsKO.js";
-            logger.LogInfo($"Writing settings JS to: {jsPath}");
+            using var reader = new StreamReader(stream);
+            var jsContent = reader.ReadToEnd();
+
+            var jsPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/_Shared/js/settings-chatbox.js";
+            logger.LogInfo($"Writing embedded settings JS to: {jsPath}");
             File.WriteAllText(jsPath, jsContent);
         }
         catch (Exception exception)
         {
-            Plugin.PluginLogger.LogError($"Exception downloading modified ui: {exception}");
+            logger.LogError($"Exception writing embedded UI: {exception}");
             return false;
         }
 

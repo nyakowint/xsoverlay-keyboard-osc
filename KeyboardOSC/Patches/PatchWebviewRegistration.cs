@@ -1,28 +1,34 @@
+using System;
 using HarmonyLib;
 using Vuplex.WebView;
 using XSOverlay;
-using XSOverlay.WebApp;
 
 namespace KeyboardOSC.Patches;
 
-[HarmonyPatch(typeof(Overlay_Manager), "OnRegisterWebviewOverlay")]
+
+[HarmonyPatch(typeof(Overlay_Manager), nameof(Overlay_Manager.ToggleApplicationSettings))]
 internal static class PatchWebviewRegistration
 {
     [HarmonyPostfix]
-    public static void Postfix(OverlayWebView wv)
+    public static void Postfix(Overlay_Manager __instance)
     {
-        if (!Plugin.ModifiedUiSuccess) return;
-        if (wv.UserInterfaceSelection != OverlayWebView.UserInterfacePaths.Settings) return;
+        if (!__instance.DashboardSettingsOverlay.activeSelf) return;
 
-        Plugin.PluginLogger.LogInfo("[KBOSC:Patches] Settings webview registered — hooking LoadProgressChanged for KO injection");
-        var webView = wv._webView.WebView;
-
-        webView.LoadProgressChanged += (sender, args) =>
+        try
         {
-            if (args.Type != ProgressChangeType.Finished) return;
-            if (!webView.Url.Contains("Settings.html")) return;
+            var webView = __instance.GlobalSettingsMenuOverlay?.OverlayWebView?._webView?.WebView;
+            if (webView == null)
+            {
+                Plugin.PluginLogger.LogWarning("[KBOSC:Patches] Settings webview is null — skipping injection");
+                return;
+            }
+
             InjectSettingsModule(webView);
-        };
+        }
+        catch (Exception ex)
+        {
+            Plugin.PluginLogger.LogError($"[KBOSC:Patches] Exception injecting settings module: {ex}");
+        }
     }
 
     private static void InjectSettingsModule(IWebView webView)
@@ -36,7 +42,7 @@ internal static class PatchWebviewRegistration
             document.body.appendChild(m);
             var s = document.createElement('script');
             s.type = 'module';
-            s.src = './_Shared/js/settingsKO.js';
+            s.src = './_Shared/js/settings-chatbox.js';
             document.head.appendChild(s);
             return 'injected';
         })();";
