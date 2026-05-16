@@ -55,13 +55,13 @@ function UIPage(name, sections, uiRoot) {
 const SettingsLayout = {
     Keyboard_OSC: {
         _: {
-            KBCheckForUpdates: new Ui.Setting(Ui.ComponentType.Toggle, 'Notify about updates', "The plugin will notify you if there's an update available :D", true),
+            KBVersion: new Ui.Setting(Ui.ComponentType.Text, 'KBVersion'),
+            KBCheckForUpdates: new Ui.Setting(Ui.ComponentType.Toggle, 'Notify about updates', "if you can see this you need to update!", true),
             KBLiveSend: new Ui.Setting(Ui.ComponentType.Toggle, 'Live send mode', "If enabled messages will be sent to the chatbox as you type.", false),
             KBTypingIndicator: new Ui.Setting(Ui.ComponentType.Toggle, 'Send typing indicator', "Some prefer to not let others know when they are typing. If this is you then here ya go!", true),
             KBDisableMaxLength: new Ui.Setting(Ui.ComponentType.Toggle, 'Disable max length', "Disable the character limit on the keyboard bar. This is pointless to enable for VRChat as you will be cut off at 160chars", false),
             KBVersionCheck: new Ui.Setting(Ui.ComponentType.Button, 'Check for updates', "Check for updates rn!!!!!", null, null, null),
-            KBOpenRepo: new Ui.Setting(Ui.ComponentType.Button, 'Plugin Repo', "View this plugin's repo on GitHub", null, null, null),
-            KBVersion: new Ui.Setting(Ui.ComponentType.Text, 'KBVersion'),
+            KBOpenRepo: new Ui.Setting(Ui.ComponentType.Button, 'Plugin Repo', "View this plugin's repo on GitHub", null, null, null)
         }
     },
     General: {
@@ -550,8 +550,9 @@ function InjectKBOSCTab() {
     var kboscBtn = document.createElement('button');
     kboscBtn.className = 'side-bar-button';
 
-    var icon = document.createElement('img');
+    var icon = document.createElement('i');
     icon.className = 'side-bar-button-icon theme-font-contrast bi-keyboard-fill';
+    icon.style.color = '#4CAF50';
     kboscBtn.appendChild(icon);
 
     var label = document.createElement('div');
