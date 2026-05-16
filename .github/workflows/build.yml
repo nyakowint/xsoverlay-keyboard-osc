@@ -59,7 +59,7 @@ jobs:
           $version = "${{ steps.version.outputs.version }}"
           $short = "${{ github.sha }}".Substring(0,7)
           $tag = "$version+$short"
-          $dll = 'builds/Release/net472/KeyboardOSC.dll'
+          $dll = 'builds/Release/net48/KeyboardOSC.dll'
           $cfg = 'BepInEx.cfg'
           if (-not (Test-Path $dll)) { Write-Error "Artifact missing: $dll" }
           if (-not (Test-Path $cfg)) { Write-Error "Artifact missing: $cfg" }
