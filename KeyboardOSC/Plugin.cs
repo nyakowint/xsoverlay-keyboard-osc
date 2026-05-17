@@ -11,14 +11,14 @@ using Vuplex.WebView;
 using XSOverlay;
 using XSOverlay.WebApp;
 
-[assembly: AssemblyVersion("1.3.0")]
+[assembly: AssemblyVersion("1.3.1")]
 
 namespace KeyboardOSC
 {
     [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", PluginVersion)]
     public class Plugin : BaseUnityPlugin
     {
-        public const string PluginVersion = "1.3.0";
+        public const string PluginVersion = "1.3.1";
         public static Plugin Instance;
         public static ManualLogSource PluginLogger;
 

@@ -12,6 +12,7 @@ internal static class PatchRequestSettings
     [HarmonyPostfix]
     public static void Postfix(string sender)
     {
+        if (!sender.Equals("systemui_settings")) return;
         var pluginVersion = Plugin.PluginVersion;
 #if DEBUG || DEV
         pluginVersion += " (Dev) ";
