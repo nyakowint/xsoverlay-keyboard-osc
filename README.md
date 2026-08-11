@@ -9,7 +9,13 @@ The plugin uses [BepInEx](https://docs.bepinex.dev/index.html) to add our own ch
 > Last tested build: Build 680. \
 > Being a mod/plugin, random things might break due to changes by the XSO developer Xiexe! \
 > *(do not report bugs to them without removing your plugins first!)* \
-> The keyboard is getting a rework eventually, so the plugin may also break then. :P
+
+> [!IMPORTANT]
+> Newest Beta 688 is currently incompatible with the plugin!
+> 
+> Before this beta ships, Xiexe plan to add OSC Keyboard Input for VRChat via STT or regular typing, which will finally make this plugin obsolete. (thank you)
+>
+> The plugin will receive updates on the [dev branch](../dev) until those features are added.
 
 ## Preview
 
