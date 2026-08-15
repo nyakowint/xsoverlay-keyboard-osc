@@ -7,15 +7,14 @@ The plugin uses [BepInEx](https://docs.bepinex.dev/index.html) to add our own ch
 
 > [!IMPORTANT]
 > Last tested build: Build 680. \
-> Being a mod/plugin, random things might break due to changes by the XSO developer Xiexe! \
-> *(do not report bugs to them without removing your plugins first!)* \
+> This is an unofficial plugin! Things will break! \
+> *(do not report bugs to the developers without removing your plugins first!)* \
 
 > [!IMPORTANT]
-> Newest Beta 688 is currently incompatible with the plugin!
-> 
-> Before this beta ships, Xiexe plan to add OSC Keyboard Input for VRChat via STT or regular typing, which will finally make this plugin obsolete. (thank you)
+> The newest Build 688 (beta) reworks the keyboard to also be a webpage. This breaks the plugin as it is right now. \ 
+> Xiexe has mentioned they will be adding official OSC chatbox support before the beta ends, making this plugin defunct. 
 >
-> The plugin will receive updates on the [dev branch](../dev) until those features are added.
+> The plugin will continue receiving updates for this rework in [pre-releases](../../releases) ([dev branch](../dev)) until those features are added.
 
 ## Preview
 
