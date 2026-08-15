@@ -18,10 +18,10 @@ The plugin uses [BepInEx](https://docs.bepinex.dev/index.html) to turn the keybo
 
 ## Preview
 
-|                                                                                                                                     |                                                                                                                                  |
-|-------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| ![Icon preview](https://github.com/user-attachments/assets/2423b366-f3bb-499d-ac34-12dfc125d6b6)                                    | ![osc bar preview](https://github.com/user-attachments/assets/2800adc4-e107-42eb-b7d3-ca2948cd8c8e)                              |
-| ![Chatbox result preview](https://github.com/user-attachments/assets/ac96da74-53be-4198-906c-a99f89419e5e) | ![Chatbox bar preview](https://github.com/user-attachments/assets/8a6ab58b-9a0b-43e7-96c8-14d2150a64f1) |
+|                                                                                                            |                                                                                                              |
+|------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| ![keyboard preview](https://github.com/user-attachments/assets/32273636-bd62-4f8d-a2d1-0fb98c5d8956)       |                                                                                                              |
+| ![Chatbox result preview](https://github.com/user-attachments/assets/ac96da74-53be-4198-906c-a99f89419e5e) | ![Chatbox settings preview](https://github.com/user-attachments/assets/47a095f5-428f-44eb-a864-62d1aed27b6d) |
 
 ## Install
 
