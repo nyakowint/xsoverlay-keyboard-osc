@@ -10,10 +10,6 @@ using XSOverlay.Websockets.API;
 
 namespace KeyboardOSC;
 
-/// <summary>
-/// Bridges the chat bar injected into XSOverlay's keyboard webview to VRChat's OSC chatbox.
-/// The webview owns all of the text/UI state, this side only talks OSC and plugin settings.
-/// </summary>
 public static class ChatMode
 {
     public const int MaxLength = 144;
@@ -21,14 +17,12 @@ public static class ChatMode
     public const string KeyboardClient = "systemui_keyboard";
     public const string SettingsClient = "systemui_settings";
 
-    // Commands coming in from the injected javascript
     private const string CmdReady = "KBOSCReady";
     private const string CmdState = "KBOSCState";
     private const string CmdSend = "KBOSCSend";
     private const string CmdTyping = "KBOSCTyping";
     private const string CmdClipboard = "KBOSCClipboard";
 
-    // Messages going back out to it
     private const string MsgConfig = "KBOSCConfig";
     private const string MsgClipboard = "KBOSCClipboardData";
 
@@ -88,7 +82,6 @@ public static class ChatMode
         SendTyping(ParseJson(json)?["typing"]?.Value<bool>() ?? false);
     }
 
-    // The webview has no clipboard access of its own, so it asks us to do it
     private static void OnClipboard(string sender, string json)
     {
         var data = ParseJson(json);
@@ -135,7 +128,6 @@ public static class ChatMode
 
     #region Region: Outgoing messages
 
-    /// <summary>Pushes current plugin settings to the keyboard and settings pages.</summary>
     public static void PushConfig()
     {
         SendConfig(KeyboardClient);
@@ -145,8 +137,6 @@ public static class ChatMode
     private static void SendConfig(string client)
     {
         var config = BuildConfig();
-        // JsonUtility is fussy about nested arrays, and this is the serializer XSOverlay's own
-        // api objects go through anyway
         var json = JsonConvert.SerializeObject(config);
         Plugin.PluginLogger.LogInfo($"Sending config to {client} ({config.macros?.Length ?? 0} macros)");
         SendMessage(MsgConfig, json, client);
@@ -195,7 +185,6 @@ public static class ChatMode
     private static void SendMessage(string command, string json, string client)
     {
         if (_api == null) return;
-        // Sending to a page that isn't up yet only produces websocket noise
         if (!_api.SystemClients.ContainsKey(client)) return;
 
         try
@@ -234,13 +223,8 @@ public static class ChatMode
         }
     }
 
-    /// <summary>
-    /// Text macros, typed as shortcodes or picked from the chat bar's macro menu. The keyboard
-    /// page builds that menu from this list, so this stays the only place they're defined.
-    /// </summary>
     private static readonly Dictionary<string, string> Shortcodes = new()
     {
-        // //hrt2 and //skull2 have to be replaced before their shorter namesakes
         { "//shrug", "¯\\_(ツ)_/¯" },
         { "//happy", "(¬‿¬)" },
         { "//tflip", "┬─┬" },

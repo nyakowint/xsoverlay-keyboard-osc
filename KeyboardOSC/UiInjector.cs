@@ -7,13 +7,8 @@ using XSOverlay.WebApp;
 namespace KeyboardOSC;
 
 #pragma warning disable Publicizer001
-/// <summary>
-/// XSOverlay's keyboard and settings pages are both web apps now, so our additions are
-/// script modules injected into them once they've finished loading.
-/// </summary>
 public static class UiInjector
 {
-    // Leading slash matters, WindowSettings.html is a different page
     private const string KeyboardPage = "/Keyboard.html";
     private const string SettingsPage = "/Settings.html";
 
@@ -46,13 +41,11 @@ public static class UiInjector
         InjectInto(url);
     }
 
-    /// <summary>Injects into any of our pages that are already loaded (plugin loaded late, etc).</summary>
     public static void InjectExisting()
     {
         foreach (var webView in Resources.FindObjectsOfTypeAll<OverlayWebView>())
         {
             var url = webView == null ? null : webView.LoadedURL;
-            // Pages that haven't loaded yet get picked up by the event instead
             if (!string.IsNullOrEmpty(url) && IsPatchablePage(url)) InjectInto(url, true);
         }
     }
@@ -83,7 +76,7 @@ public static class UiInjector
             if (webView == null)
             {
                 if (!quiet)
-                    Plugin.PluginLogger.LogWarning($"[KBOSC:Inject] Couldn't find a webview for {url} — skipping {script}");
+                    Plugin.PluginLogger.LogWarning($"[KBOSC:Inject] Couldn't find a webview for {url}, skipping {script}");
                 return;
             }
 
@@ -103,8 +96,6 @@ public static class UiInjector
         }
     }
 
-    // Pages only load once per launch, so a fresh key each run beats serving a cached script
-    // from before the plugin was updated
     private static readonly string CacheKey = DateTime.UtcNow.Ticks.ToString();
 
     private static string BuildInjection(string script, string marker)

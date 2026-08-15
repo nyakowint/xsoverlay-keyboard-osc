@@ -7,15 +7,14 @@ The plugin uses [BepInEx](https://docs.bepinex.dev/index.html) to turn the keybo
 
 > [!IMPORTANT]
 > Last tested build: Beta 688. \
-> Being a mod/plugin, random things might break due to changes by the XSO developer Xiexe! \
-> *(do not report bugs to them without removing your plugins first!)* \
+> This is an unofficial plugin! Things will break! \
+> *(do not report bugs to them without removing your plugins first!)* 
 
 > [!IMPORTANT]
-> **Version 2.0.0 is only for beta 688 and newer**, where the keyboard became a web page.
-> On older builds use [1.3.1](../../releases/tag/1.3.1) instead.
+> **Version 2.0.0 is only for the keyboard rework in beta 688 and newer**.
+> On older builds, you should use use plugin [1.x](../../releases/tag/1.3.1) releases instead.
 >
-> Xiexe plan to add OSC keyboard input for VRChat (via STT or regular typing) themselves, which
-> will finally make this plugin obsolete. (thank you)
+> Xiexe has mentioned they will be adding official OSC chatbox support before the beta ends, making this plugin defunct. (thank u)
 
 ## Preview
 
@@ -40,29 +39,19 @@ Having trouble? Do a [manual installation](#manual-installation)
 
 ## Usage instructions
 
-1. Enable OSC. For VRChat you can find this in the Action Menu (Options > OSC > Enabled)
+1. Enable OSC in VRChat or other social app. For VRChat you can find this in the Action Menu (Options > OSC > Enabled)
 2. Open the XSOverlay keyboard
-3. Press the chat bubble button on the left of the keyboard's text bar (next to the microphone)
-4. Congrats! Type away — <kbd>ENTER</kbd> sends, and the button (or <kbd>ESC</kbd> on an empty
-   bar) gives the keyboard back to Windows
-
-While chat mode is on, the keyboard types into the chat bar instead of whatever app is focused,
-so nothing leaks into your game.
+3. Press the chat icon on the top left, above escape next to the microphone button
+4. Congrats!
 
 The chat button decides where the bar sends, for anything that writes into it:
 
-| Chat mode | Typing                     | XSOverlay's dictation (microphone)          |
-|-----------|----------------------------|---------------------------------------------|
-| off       | typed into Windows (stock) | stock — send types the transcript to Windows |
-| on        | goes to the chat bar       | transcript goes to the chat bar → sent to the chatbox over OSC |
+| Chat mode | Typing destination     | XSOverlay STT destination                             |
+|-----------|------------------------|-------------------------------------------------------|
+| off       | input sent to the OS   | text box -> sent into selected input field in windows |
+| on        | STT text box -> vrchat | text box -> vrchat                                    |
 
-So dictating into the VRChat chatbox is just: chat mode on, microphone, then <kbd>ENTER</kbd>.
-XSOverlay's own voice flow is untouched with chat mode off.
-
-To change settings: Open XSOverlay's settings, go to the **Keyboard** page and scroll to the
-**Chatbox** section.
-
-(Troubleshooting/extras at the bottom of README)
+Chatbox plugin settings are now found in XSOverlay's own Keyboard settings page at the bottom!
 
 # Shortcut keys/text macros
 
@@ -79,38 +68,37 @@ Use the following shortcuts for quick access to certain actions:
 | <kbd>CTRL</kbd> + <kbd>V</kbd>          | Paste text from your clipboard                                                                             |
 | <kbd>ENTER</kbd>                        | Send message to the chatbox (behaviour depends on your settings)                                           |
 
-Arrow keys, home/end and text selection all work now, since the bar is a real text field.
+The textbox is a web based input field now, so functionality depends on what gets changed/added in future betas/builds
 
-Full compatibility with OSC in alternate platforms (resonite/chillout/others) is not guaranteed. \
+
+(nb: i couldn't get CTRL + A and caret selection/highlighting to work reliably in this beta, so keep that in mind)
+
+> [!WARNING]
+> Full compatibility with OSC in alternate platforms (resonite/chillout/others) is not guaranteed. \
 If it adheres mostly to VRChat OSC addresses it should be fine.
 
-The keyboard's dedicated copy and paste keys work on the chat bar too (they do nothing at all in
-the base build — XSOverlay ships them without a keycode).
 
-There are also a few text macro shortcuts built in. Type them, or pick them from the **macros**
-menu on the right end of the chat bar:
+There are also a few text macro shortcuts built in, type their code or pick them from the macros menu above the keyboard
 
-| Trigger     | Output           |
-|-------------|------------------|
-| `//shrug`   | `¯\\_(ツ)_/¯`    |
-| `//happy`   | `(¬‿¬)`          |
-| `//tflip`   | `┬─┬`            |
-| `//music`   | `🎵`             |
-| `//cookie`  | `🍪`             |
-| `//star`    | `⭐`             |
-| `//hrt`     | `💗`             |
-| `//hrt2`    | `💕`             |
-| `//skull`   | `💀`             |
-| `//skull2`  | `☠`              |
-| `//rx3`     | `rawr x3`        |
+| Shortcut code | Output           |
+|---------------|------------------|
+| `//shrug`     | `¯\\_(ツ)_/¯`    |
+| `//happy`     | `(¬‿¬)`          |
+| `//tflip`     | `┬─┬`            |
+| `//music`     | `🎵`             |
+| `//cookie`    | `🍪`             |
+| `//star`      | `⭐`             |
+| `//hrt`       | `💗`             |
+| `//hrt2`      | `💕`             |
+| `//skull`     | `💀`             |
+| `//skull2`    | `☠`              |
+| `//rx3`       | `rawr x3`        |
 
-Note that the emojis do not look good in vrchat's chatbox font at all lmao
+Pls note that the emojis do not look good in vrchat's chatbox font at all lmao
 
 ## Troubleshooting
 
-The plugin logs to XSOverlay's own log as well as BepInEx's, so
-`%userprofile%/AppData/LocalLow/Xiexe/XSOverlay/output_logs` is worth a look if the bar
-misbehaves — search it for `[KBOSC]`.
+Plugin specific logs can be found in `XSOverlay install dir\BepInEx`
 
 If you can't seem to get OSC to work, try one of these:
 

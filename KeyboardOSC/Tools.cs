@@ -153,7 +153,6 @@ public static class Tools
         }
     }
 
-    // Both pages are plain web apps now, so our UI additions are just modules dropped next to theirs
     private static readonly Dictionary<string, string> InjectedScripts = new()
     {
         { "KeyboardOSC.chatbox-keyboard.js", "chatbox-keyboard.js" },
@@ -196,7 +195,6 @@ public static class Tools
             }
         }
 
-        // 1.x wrote its settings page module here, it's dead weight if it's still around
         try
         {
             var legacyScript = ScriptPath("settings-chatbox.js");

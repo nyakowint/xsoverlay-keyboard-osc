@@ -1,7 +1,3 @@
-// KeyboardOSC — chat bar for XSOverlay's keyboard page.
-// Rides on the keyboard's existing voice input: while chat mode is on the bar owns keyboard
-// input focus, so every key press (and anything whisper transcribes) lands in the input, and
-// sending pushes it to VRChat's chatbox over OSC instead of typing it into Windows.
 import * as Api from '../../../../_Shared/api.js';
 import * as Ui from '../js/uiComponents.js';
 
@@ -15,7 +11,7 @@ const Commands = {
     Config: 'KBOSCConfig',
 };
 
-const Placeholder = 'type something silly!';
+const Placeholder = 'Captured chatbox text';
 const StockPlaceholder = 'Captured voice text';
 const LiveSendDelay = 1300;
 const TypingThrottle = 750;
@@ -63,18 +59,12 @@ function Initialize() {
     Log('chat bar loaded');
 }
 
-// There's no devtools on the overlay's webview, so anything worth knowing goes to XSOverlay's
-// log (LocalLow/Xiexe/XSOverlay/output_logs) as well as the page console.
 function Log(text) {
     console.log(`[KBOSC] ${text}`);
     const socket = Api.Client.Socket;
     if (socket && socket.readyState === WebSocket.OPEN) Api.Send('Log', null, `[KBOSC] ${text}`);
 }
 
-/* ---------------- Attaching to the keyboard ---------------- */
-
-// keyboard.js tears the whole keyboard down and rebuilds it whenever the layout or format
-// changes, so we can't just attach once.
 function WatchKeyboard() {
     const observer = new MutationObserver(() => Attach());
     observer.observe(document.body, { childList: true, subtree: true });
@@ -101,16 +91,13 @@ function Attach() {
     if (actions) wrap.insertBefore(Chat.counter, actions);
     else wrap.appendChild(Chat.counter);
 
-    // Runs after keyboard.js' own input listener, so it sees the size/state it just applied
     input.addEventListener('input', () => OnValueChanged());
-    // Send and clear have to mean something else while we own the bar
     wrap.addEventListener('pointerdown', OnWrapPointerDown, true);
 
     const container = document.getElementById('keyboard-container');
     container?.addEventListener('pointerdown', OnKeyPointerDown, true);
     container?.addEventListener('touchstart', OnKeyPointerDown, { capture: true, passive: false });
 
-    // Carry the in progress message (and our focus) over to the rebuilt keyboard
     if (Chat.active && Chat.lastValue) input.value = Chat.lastValue;
     Chat.lastValue = input.value;
     ApplyChatUi();
@@ -140,8 +127,6 @@ function CreateToggle() {
     return button;
 }
 
-// Same dropdown component the keyboard uses for its speech language, so it looks like it
-// belongs there. Rebuilt whenever the macro list changes (it arrives with the plugin config).
 function BuildMacroMenu() {
     const macros = Chat.config.macros;
     if (!Chat.wrap || !macros.length) {
@@ -181,7 +166,6 @@ function BuildMacroMenu() {
         if (Chat.hasFocus) Chat.input?.focus();
     });
 
-    // Lives on the far end of the bar, away from XSOverlay's own voice controls
     Chat.wrap.appendChild(menu.container);
     Chat.macros = menu;
     SyncKeyboardBar();
@@ -215,8 +199,6 @@ function InjectStyles() {
     pointer-events: auto !important;
     min-width: 320px !important;
 }
-/* The overlay drops webview focus whenever its lifecycle blips, which makes the stock :focus
-   ring blink while the keyboard just sits there. Ours lives on the wrap and never moves. */
 #keyboard-voice-wrap.kbosc-chat #keyboard-voice-input,
 #keyboard-voice-wrap.kbosc-chat #keyboard-voice-input:focus {
     box-shadow: none !important;
@@ -278,8 +260,6 @@ function InjectStyles() {
     document.head.appendChild(style);
 }
 
-/* ---------------- Chat mode ---------------- */
-
 function SetChatMode(on) {
     if (!Chat.input) return;
     Chat.active = on;
@@ -294,10 +274,9 @@ function SetChatMode(on) {
             return;
         }
 
-        // Without focus every key press would go to whatever app is in front instead
         setTimeout(() => {
             if (!Chat.active || Chat.hasFocus) return;
-            Log('XSOverlay never handed us keyboard focus, leaving chat mode');
+            Log('timed out getting keyboard focus, exiting chat mode');
             SetChatMode(false);
         }, 1000);
     } else {
@@ -311,7 +290,7 @@ function SetChatMode(on) {
     }
 
     SendCommand(Commands.State, { active: Chat.active });
-    Log(`chat mode ${Chat.active ? 'on' : 'off'}`);
+    Log(`chat mode is now ${Chat.active ? 'on' : 'off'}`);
     ApplyChatUi();
 }
 
@@ -340,8 +319,6 @@ function ApplyChatUi() {
     SyncKeyboardBar();
 }
 
-// keyboard.js recalculates the bar's width (and the overlay's collision mesh) from its own
-// input handler, so nudging it is the tidiest way to keep our additions measured.
 function SyncKeyboardBar() {
     if (!Chat.input || Chat.syncing) return;
     Chat.syncing = true;
@@ -353,8 +330,6 @@ function SyncKeyboardBar() {
     ApplyPlaceholder();
 }
 
-// Whisper puts its own status ("Loading speech model…", errors, "...") in the placeholder while
-// it records — that's worth more than our hint, so only replace the idle one.
 function ApplyPlaceholder() {
     if (!Chat.active || !Chat.input) return;
     const current = Chat.input.placeholder;
@@ -380,14 +355,11 @@ function ToggleSilent() {
     ApplyChatUi();
 }
 
-/* ---------------- Text handling ---------------- */
-
 function OnValueChanged() {
     if (!Chat.input) return;
     const value = Chat.input.value;
     if (value === Chat.lastValue) return;
 
-    // Trim here rather than on send so the counter never lies about what goes out
     if (!Chat.config.disableMaxLength && value.length > Chat.config.maxLength) {
         const caret = Chat.input.selectionStart;
         Chat.input.value = value.slice(0, Chat.config.maxLength);
@@ -442,7 +414,6 @@ function SendChat() {
 
     Chat.lastMsg = text;
     if (Chat.config.liveSend) {
-        // Live send has already been streaming this message out, so this just finalizes it
         StopLiveTimer();
         PostChat(text, !Chat.silent && Chat.firstLiveChunk);
         Chat.firstLiveChunk = false;
@@ -497,8 +468,6 @@ function ForceTyping(typing) {
     SendCommand(Commands.Typing, { typing });
 }
 
-// Whisper transcripts (and anything else keyboard.js writes) set input.value directly, which
-// doesn't raise an input event, so watch for it while we're in chat mode.
 function StartValuePolling() {
     if (Chat.pollTimer != null) return;
     Chat.pollTimer = setInterval(() => {
@@ -517,8 +486,6 @@ function StopValuePolling() {
 function PlaceholderText() {
     return Chat.silent ? `${Placeholder} (silent)` : Placeholder;
 }
-
-/* ---------------- Input interception ---------------- */
 
 function OnKeyDown(event) {
     if (!Chat.active) return;
@@ -543,7 +510,6 @@ function OnKeyDown(event) {
             SetText(Chat.lastMsg);
             return;
         case 'End':
-            // Only when there's nothing to move the caret through
             if (Chat.input?.value) return;
             event.preventDefault();
             ClearChatbox();
@@ -571,20 +537,14 @@ function SelectedText() {
     return end > start ? input.value.slice(start, end) : input.value;
 }
 
-// Focusable things in the page (the speech language dropdown, for one) can take DOM focus off
-// the input, which would send key presses nowhere. Rather than fight for it while idle — that
-// makes the bar flicker — take it back the moment a key is actually pressed.
 function OnKeyPointerDown(event) {
     if (!Chat.active || !Chat.input) return;
-    // Mirror how keyboard.js splits pointer and touch input so we don't act on both
     if (event.type === 'pointerdown' && event.pointerType === 'touch') return;
 
     const target = event.target instanceof Element ? event.target : null;
     const key = target?.closest('.key');
     if (!key) return;
 
-    // XSOverlay's copy/paste keys carry no keycode (they do nothing in the base build), so the
-    // icon is all we have to go on. In chat mode they act on the bar.
     if (key.querySelector('.bi-copy')) {
         event.preventDefault();
         event.stopPropagation();
@@ -616,8 +576,6 @@ function OnWrapPointerDown(event) {
     const target = event.target instanceof Element ? event.target : null;
     if (!target) return;
 
-    // The microphone is XSOverlay's own feature and works the same either way — the transcript
-    // lands in the bar, chat mode just decides where the bar sends it. Don't touch the press.
     if (target.closest('#keyboard-voice-button')) return;
 
     const send = target.closest('#keyboard-voice-send');
@@ -636,17 +594,13 @@ function OnWrapPointerDown(event) {
     }
 }
 
-/* ---------------- Plugin bridge ---------------- */
-
 function SendCommand(command, payload) {
     const socket = Api.Client.Socket;
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
     Api.Send(command, payload == null ? null : JSON.stringify(payload), null);
 }
 
-// api.js replaces the socket on reconnect, so keep an eye on which one we're bound to
 function WatchSocket() {
-    // The plugin can outlive this page (webview reloads, reconnects), so tell it where we're at
     const announce = () => {
         SendCommand(Commands.Ready, null);
         SendCommand(Commands.State, { active: Chat.active });
@@ -684,14 +638,10 @@ function OnSocketMessage(message) {
 
         case 'KeyboardInputFocusGranted':
             Chat.hasFocus = true;
-            // Focus can be handed back and forth without us asking, so keep the plugin's idea of
-            // chat mode in step with ours
             if (Chat.active) SendCommand(Commands.State, { active: true });
             break;
 
         case 'KeyboardInputFocusReleased':
-            // Enter and escape are handled by the plugin, but if that patch ever stops applying
-            // XSOverlay drops focus instead and we get told about it here.
             Chat.hasFocus = false;
             if (!Chat.active) return;
             if (decoded.JsonData?.reason === 'enter') {
@@ -725,9 +675,9 @@ function ApplyConfig(config) {
         macros,
     };
     if (macrosChanged || !Chat.macros) BuildMacroMenu();
-    Log(`plugin config v${Chat.config.version} — live send: ${Chat.config.liveSend}, typing indicator: ` +
-        `${Chat.config.typingIndicator}, max length: ${Chat.config.disableMaxLength ? 'off' : Chat.config.maxLength}, ` +
-        `macros: ${macros.length}`);
+    Log(`plugin config debug: v${Chat.config.version}, live send: ${Chat.config.liveSend}, typing indicator: ` +
+        `${Chat.config.typingIndicator}, msg max length: ${Chat.config.disableMaxLength ? 'off' : Chat.config.maxLength}, ` +
+        `all macros: ${macros.length}`);
     if (!Chat.config.liveSend) StopLiveTimer();
     UpdateCounter();
 }
@@ -742,8 +692,6 @@ function RetakeFocus() {
     }
 }
 
-// Focus bounces (a release immediately followed by a grant) whenever something re-requests it
-// for the same input, so give it a moment before deciding chat mode is over.
 function ScheduleFocusCheck() {
     if (Chat.focusCheck != null) clearTimeout(Chat.focusCheck);
     Chat.focusCheck = setTimeout(() => {

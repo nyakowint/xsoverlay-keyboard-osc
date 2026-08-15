@@ -4,7 +4,6 @@ using XSOverlay;
 
 namespace KeyboardOSC.Patches;
 
-// Our settings ride along with XSOverlay's settings page, so they come through here.
 [HarmonyPatch(typeof(XSettingsManager), nameof(XSettingsManager.SetSetting))]
 internal static class PatchSetSetting
 {
@@ -35,7 +34,6 @@ internal static class PatchSetSetting
                 return true;
         }
 
-        // Keep the keyboard bar and settings page in sync, then skip XSOverlay's own handling
         ChatMode.PushConfig();
         return false;
     }

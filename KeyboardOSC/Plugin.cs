@@ -21,7 +21,6 @@ namespace KeyboardOSC
         public static bool IsDebugConfig = false;
         public static bool IsDevBuild;
 
-        // Set from the keyboard webview whenever the chat bar owns keyboard input focus.
         public static bool ChatModeActive;
         public static bool ModifiedUiSuccess;
 
@@ -42,7 +41,6 @@ namespace KeyboardOSC
             PluginSettings.Init();
 
             ModifiedUiSuccess = Tools.WriteInjectedUi();
-            // Subscribed before any webview finishes loading so the first load gets patched too
             UiInjector.Subscribe();
 
             if (!Environment.CommandLine.Contains("-batchmode") || IsDebugConfig) return;
@@ -66,7 +64,6 @@ namespace KeyboardOSC
             UiInjector.Unsubscribe();
         }
 
-        // ServerClientBridge builds its api on Awake, but plugin load order isn't guaranteed
         private IEnumerator SetupBridge()
         {
             var waited = 0f;
@@ -85,7 +82,6 @@ namespace KeyboardOSC
             ChatMode.RegisterCommands(ServerClientBridge.Instance.Api);
             Logger.LogInfo("Chatbox bridge registered!");
 
-            // Covers pages that finished loading before we were around to hear about it
             UiInjector.InjectExisting();
 
             if (PluginSettings.GetSetting<bool>("CheckForUpdates").Value) Task.Run(Tools.CheckVersion);

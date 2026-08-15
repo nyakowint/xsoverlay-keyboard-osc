@@ -1,16 +1,17 @@
 name: Build & Release
 
 concurrency:
-  group: "build"
+  group: "build-${{ github.ref }}"
   cancel-in-progress: true
 
 on:
   push:
     branches:
       - main
+      - dev
     paths-ignore:
       - '**/*.md'
-      - '**/*.js'
+      - '*.js'
       - '**/*.ps1'
   workflow_dispatch:
 jobs:
@@ -45,20 +46,42 @@ jobs:
       - name: Read version
         id: version
         shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if (-Not (Test-Path VERSION)) { Write-Error "VERSION file not found" }
           $version = (Get-Content VERSION -Raw).Trim()
           if (-not $version) { Write-Error "VERSION file is empty" }
+
+          $short = "${{ github.sha }}".Substring(0,7)
+          $prerelease = "${{ github.ref_name }}" -ne 'main'
+
+          if ($prerelease) {
+            $refs = gh api --paginate "repos/$env:GITHUB_REPOSITORY/git/refs/tags" --jq '.[].ref' 2>$null
+            $pattern = '^refs/tags/' + [regex]::Escape($version) + '-pre(\d+)(\+.*)?$'
+            $max = 0
+            foreach ($r in $refs) {
+              if ($r -match $pattern -and [int]$Matches[1] -gt $max) { $max = [int]$Matches[1] }
+            }
+            $tag = "$version-pre$($max + 1)+$short"
+          } else {
+            $tag = "$version+$short"
+          }
+
           echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "tag=$tag" >> $env:GITHUB_OUTPUT
+          echo "prerelease=$($prerelease.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+          echo "Building $tag (prerelease: $prerelease)"
 
       - name: Create Release
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $version = "${{ steps.version.outputs.version }}"
+          $tag = "${{ steps.version.outputs.tag }}"
+          $prerelease = "${{ steps.version.outputs.prerelease }}" -eq 'true'
+          $branch = "${{ github.ref_name }}"
           $short = "${{ github.sha }}".Substring(0,7)
-          $tag = "$version+$short"
           $dll = 'builds/Release/net48/KeyboardOSC.dll'
           $cfg = 'BepInEx.cfg'
           if (-not (Test-Path $dll)) { Write-Error "Artifact missing: $dll" }
@@ -66,4 +89,15 @@ jobs:
 
           if (Test-Path CHANGELOG.md) { $notes = Get-Content CHANGELOG.md -Raw } else { $notes = 'Automated build' }
 
-          gh release create $tag $dll $cfg --title "KeyboardOSC $tag" --prerelease --notes-file CHANGELOG.md || Write-Error 'Release creation failed'
+          if ($prerelease) {
+            $notes = "Automated build of branch **$branch** at commit $short. Unreleased and possibly " +
+                     "unstable, the current stable build is whatever release is marked latest.`n`n---`n`n" + $notes
+          }
+
+          $notesPath = Join-Path $env:RUNNER_TEMP 'release-notes.md'
+          Set-Content -Path $notesPath -Value $notes -Encoding utf8
+
+          $flags = @('--target', "${{ github.sha }}", '--title', "KeyboardOSC $tag", '--notes-file', $notesPath)
+          if ($prerelease) { $flags += '--prerelease' }
+
+          gh release create $tag $dll $cfg @flags || Write-Error 'Release creation failed'

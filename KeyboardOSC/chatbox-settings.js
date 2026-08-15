@@ -1,6 +1,3 @@
-// KeyboardOSC — settings for the chatbox bar.
-// XSOverlay ships a Keyboard page now, so we add a section to it instead of bolting a whole
-// page (and sidebar button) onto the settings menu like 1.x did.
 import * as Api from '../../../../_Shared/api.js';
 import * as Ui from '../js/uiComponents.js';
 
@@ -32,8 +29,6 @@ let socket = null;
 WaitForKeyboardPage();
 WatchSocket();
 
-// There's no devtools on the overlay's webview, so anything worth knowing goes to XSOverlay's
-// log (LocalLow/Xiexe/XSOverlay/output_logs) as well as the page console.
 function Log(text) {
     console.log(`[KBOSC] ${text}`);
     const current = Api.Client.Socket;
@@ -43,7 +38,6 @@ function Log(text) {
 function WaitForKeyboardPage(attempt = 0) {
     const page = document.getElementById('Page_Keyboard');
     if (!page) {
-        // The settings page builds itself on load, give it a moment if we got here first
         if (attempt > 100) {
             Log('no keyboard settings page to add our section to');
             return;
@@ -106,7 +100,6 @@ function ApplyConfig(config) {
     if (version) version.innerHTML = config.versionText || `Version ${config.version ?? '?'}`;
 }
 
-// api.js hands out a new socket on reconnect, so re-bind if it swaps under us
 function WatchSocket() {
     const bind = () => {
         const current = Api.Client.Socket;
