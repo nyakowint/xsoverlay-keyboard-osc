@@ -31,12 +31,3 @@ public abstract class PluginSettings
         configEntry.SetSerializedValue(value);
     }
 }
-
-public class UiSettings
-{
-    public string KBVersion = Plugin.PluginVersion;
-    public bool KBCheckForUpdates = true;
-    public bool KBLiveSend = false;
-    public bool KBTypingIndicator = true;
-    public bool KBDisableMaxLength = false;
-}

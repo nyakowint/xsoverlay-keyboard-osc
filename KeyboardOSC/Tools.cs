@@ -1,17 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using BepInEx;
-using HarmonyLib; 
-using Newtonsoft.Json.Linq;
+using HarmonyLib;
 using UnityEngine;
-using WindowsInput.Native;
 using XSOverlay;
 using XSOverlay.Websockets.API;
 using Object = UnityEngine.Object;
@@ -21,8 +16,10 @@ namespace KeyboardOSC;
 #pragma warning disable Publicizer001
 public static class Tools
 {
-    
+    public const string RepoUrl = "https://github.com/nyakowint/xsoverlay-keyboard-osc";
+
     public static KeyValuePair<bool, string> UpdateCheckResult = new(false, "");
+
     public static void SendOsc(string address, params object[] msg)
     {
         var oscClient = ExternalMessageHandler.Instance.OscClient;
@@ -50,6 +47,12 @@ public static class Tools
             volume = 0.5f
         };
         XSOEventSystem.Current.EventQueueNotification(notif);
+    }
+
+    public static void OpenRepo()
+    {
+        Application.OpenURL(RepoUrl);
+        SendNotif("KeyboardOSC Github link opened in browser!");
     }
 
     private static int CalculateHeight(string content)
@@ -94,12 +97,6 @@ public static class Tools
 
     private const string VersionUrl = "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/VERSION";
 
-    static Tools()
-    {
-        // Initialize keyboard layout once on load
-        RefreshKeyboardLayout();
-    }
-
     public static async Task CheckVersion()
     {
         var logger = Plugin.PluginLogger;
@@ -138,8 +135,12 @@ public static class Tools
             {
                 UpdateCheckResult = new KeyValuePair<bool, string>(true, remoteVerObj.ToString());
                 logger.LogInfo($"New version available! {remoteVerObj}");
-                ThreadingHelper.Instance.StartSyncInvoke(() => SendNotif("KeyboardChatbox Update available!",
-                    $"A new version of Keyboard Chatbox [ {remoteVerObj} ] is available. You are currently using version {Plugin.PluginVersion}. :D"));
+                ThreadingHelper.Instance.StartSyncInvoke(() =>
+                {
+                    SendNotif("KeyboardChatbox Update available!",
+                        $"A new version of Keyboard Chatbox [ {remoteVerObj} ] is available. You are currently using version {Plugin.PluginVersion}. :D");
+                    ChatMode.PushConfig();
+                });
             }
             else
             {
@@ -152,83 +153,65 @@ public static class Tools
         }
     }
 
+    // Both pages are plain web apps now, so our UI additions are just modules dropped next to theirs
+    private static readonly Dictionary<string, string> InjectedScripts = new()
+    {
+        { "KeyboardOSC.chatbox-keyboard.js", "chatbox-keyboard.js" },
+        { "KeyboardOSC.chatbox-settings.js", "chatbox-settings.js" }
+    };
+
+    public static string ScriptPath(string fileName)
+    {
+        return $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/_Shared/js/{fileName}";
+    }
+
     public static bool WriteInjectedUi()
     {
         var logger = Plugin.PluginLogger;
+        var success = true;
+
+        foreach (var script in InjectedScripts)
+        {
+            try
+            {
+                var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(script.Key);
+                if (stream == null)
+                {
+                    logger.LogError($"Embedded resource \"{script.Key}\" not found!");
+                    success = false;
+                    continue;
+                }
+
+                using var reader = new StreamReader(stream);
+                var jsContent = reader.ReadToEnd();
+
+                var jsPath = ScriptPath(script.Value);
+                logger.LogInfo($"Writing embedded UI script to: {jsPath}");
+                File.WriteAllText(jsPath, jsContent);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Exception writing embedded UI ({script.Value}): {exception}");
+                success = false;
+            }
+        }
+
+        // 1.x wrote its settings page module here, it's dead weight if it's still around
         try
         {
-            var resourcePath = "KeyboardOSC.chatbox-settings.js";
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourcePath);
-            if (stream == null)
-            {
-                logger.LogError($"Embedded resource \"{resourcePath}\" not found!");
-                return false;
-            }
-
-            using var reader = new StreamReader(stream);
-            var jsContent = reader.ReadToEnd();
-
-            var jsPath = $"{Application.streamingAssetsPath}/Plugins/Applications/_UI/Default/_Shared/js/settings-chatbox.js";
-            logger.LogInfo($"Writing embedded settings JS to: {jsPath}");
-            File.WriteAllText(jsPath, jsContent);
+            var legacyScript = ScriptPath("settings-chatbox.js");
+            if (File.Exists(legacyScript)) File.Delete(legacyScript);
         }
         catch (Exception exception)
         {
-            logger.LogError($"Exception writing embedded UI: {exception}");
-            return false;
+            logger.LogWarning($"Couldn't clean up the old settings script: {exception.Message}");
         }
 
-        return true;
-    }
-    
-    public static Sprite GetSprite(this string resName)
-    {
-        var texture = GetTexture(resName);
-        if (!texture)
-        {
-            // Fallback: create a 1x1 transparent texture so callers don't NRE
-            texture = new Texture2D(1, 1);
-            texture.SetPixel(0, 0, Color.clear);
-            texture.Apply();
-        }
-
-        var rect = new Rect(0.0f, 0.0f, texture.width, texture.height);
-        var pivot = new Vector2(0.5f, 0.5f);
-        var border = Vector4.zero;
-        var sprite = Sprite.Create(texture, rect, pivot, 100.0f, 0, SpriteMeshType.Tight, border, false);
-        sprite.hideFlags |= HideFlags.DontUnloadUnusedAsset;
-        return sprite;
+        return success;
     }
 
-    public static Texture2D GetTexture(string resName)
-    {
-        var resourcePath = $"KeyboardOSC.{resName}.png";
-        var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourcePath);
-        if (stream == null)
-        {
-            Plugin.PluginLogger.LogError($"Resource \"{resourcePath}\" doesn't exist!");
-            return null;
-        }
+    #region Region: Reflection safety helpers
 
-        using var ms = new MemoryStream();
-        stream.CopyTo(ms);
-
-        var texture = new Texture2D(1, 1);
-        texture.LoadImage(ms.ToArray());
-        texture.hideFlags |= HideFlags.DontUnloadUnusedAsset;
-        texture.wrapMode = TextureWrapMode.Clamp;
-
-        return texture;
-    }
-
-    #region Region: System/Keys Methods
-
-    public static string ConvertVirtualKeyToUnicode(VirtualKeyCode keyCode, uint scanCode, bool shift, bool altGr)
-    {
-        return GetCharsFromKeys(keyCode, scanCode, shift, altGr);
-    }
-
-    // Reflection safety helpers
     public static MethodInfo SafeMethod(Type type, string name, Type[] args = null, bool required = false)
     {
         try
@@ -238,7 +221,7 @@ public static class Tools
             {
                 Plugin.PluginLogger.LogWarning($"[KBOSC:Reflection] Method not found: {type.FullName}.{name}");
                 if (required)
-                    Plugin.PluginLogger.LogError($"Required method missing; related feature will be disabled.");
+                    Plugin.PluginLogger.LogError("Required method missing; related feature will be disabled.");
             }
             return mi;
         }
@@ -258,7 +241,7 @@ public static class Tools
             {
                 Plugin.PluginLogger.LogWarning($"[KBOSC:Reflection] Field not found: {type.FullName}.{name}");
                 if (required)
-                    Plugin.PluginLogger.LogError($"Required field missing; related feature will be disabled.");
+                    Plugin.PluginLogger.LogError("Required field missing; related feature will be disabled.");
             }
             return fi;
         }
@@ -268,66 +251,6 @@ public static class Tools
             return null;
         }
     }
-
-    [DllImport("user32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
-    private static extern int ToUnicodeEx(uint wVirtKey, uint wScanCode, byte[] lpKeyState, StringBuilder pwszBuff,
-        int cchBuff, uint wFlags, IntPtr dwhkl);
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetKeyboardLayout(uint idThread);
-
-    public static void RefreshKeyboardLayout()
-    {
-        try
-        {
-            _currentHkl = GetKeyboardLayout(0);
-            Plugin.PluginLogger?.LogInfo($"[Keyboard] Initial layout HKL at startup: 0x{_currentHkl.ToInt64():X16}");
-        }
-        catch (Exception ex)
-        {
-            Plugin.PluginLogger?.LogWarning($"Failed to get keyboard layout: {ex.Message}");
-        }
-    }
-
-    // REEEEEEE
-    private static string GetCharsFromKeys(VirtualKeyCode key, uint scanCode, bool shift, bool altGr)
-    {
-        // Refresh the keyboard layout on each key press to support layout switching
-        var currentHkl = GetKeyboardLayout(0);
-        
-        StringBuilder stringBuilder = new StringBuilder(256);
-        byte[] array = new byte[256];
-        if (shift)
-        {
-            array[16] = byte.MaxValue;
-        }
-
-        if (altGr)
-        {
-            array[17] = byte.MaxValue;
-            array[18] = byte.MaxValue;
-        }
-
-        int num = ToUnicodeEx((uint) key, scanCode, array, stringBuilder, stringBuilder.Capacity, 0u, currentHkl);
-        if (num == k_SUCCESS)
-        {
-            return stringBuilder.ToString();
-        }
-
-        if (num == k_NOTRANSLATION)
-        {
-            return "";
-        }
-
-        _ = k_DEADCHAR;
-        return stringBuilder[stringBuilder.Length - 1].ToString();
-    }
-
-    public static int k_DEADCHAR;
-    public static int k_NOTRANSLATION;
-    public static int k_SUCCESS;
-#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
-    private static IntPtr _currentHkl;
 
     #endregion
 }

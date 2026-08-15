@@ -14,14 +14,9 @@ public static class Patcher
 
         var patchClasses = new[]
         {
-            typeof(PatchSendKey),
-            typeof(PatchBlockInput),
-            typeof(PatchScaleWindow),
-            typeof(PatchAttachedMove),
+            typeof(PatchKeyboardFocus),
             typeof(PatchAnalytics),
-            typeof(PatchWebviewRegistration),
             typeof(PatchSetSetting),
-            typeof(PatchRequestSettings),
         };
 
         foreach (var patch in patchClasses)

@@ -1,169 +1,119 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Timers;
-using BepInEx;
-using BepInEx.Logging;
-using HarmonyLib;
-using TMPro;
+using System;
+using System.Collections.Generic;
+using BepInEx.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Steamworks;
 using UnityEngine;
-using WindowsInput.Native;
-using XSOverlay;
-
-// ReSharper disable SwitchStatementMissingSomeEnumCasesNoDefault
+using XSOverlay.WebApp;
+using XSOverlay.Websockets.API;
 
 namespace KeyboardOSC;
 
+/// <summary>
+/// Bridges the chat bar injected into XSOverlay's keyboard webview to VRChat's OSC chatbox.
+/// The webview owns all of the text/UI state, this side only talks OSC and plugin settings.
+/// </summary>
 public static class ChatMode
 {
-    private static bool _isSilentMsg;
-    private static bool _isFirstMsg;
-    private static string _currentText = "";
-    private static string _lastMsg = "";
-    private static readonly ManualLogSource Logger = Plugin.PluginLogger;
-    private static TextMeshProUGUI _oscBarText;
-    private static TextMeshProUGUI _charCounter;
-    private static List<KeyboardKey> _currentlyDownStickyKeys = [];
-    private static Timer _eventsTimer = new(1300);
+    public const int MaxLength = 144;
 
-    public static void HandleKey(KeyboardKey.VirtualKeyEventData eventData)
+    public const string KeyboardClient = "systemui_keyboard";
+    public const string SettingsClient = "systemui_settings";
+
+    // Commands coming in from the injected javascript
+    private const string CmdReady = "KBOSCReady";
+    private const string CmdState = "KBOSCState";
+    private const string CmdSend = "KBOSCSend";
+    private const string CmdTyping = "KBOSCTyping";
+    private const string CmdClipboard = "KBOSCClipboard";
+
+    // Messages going back out to it
+    private const string MsgConfig = "KBOSCConfig";
+    private const string MsgClipboard = "KBOSCClipboardData";
+
+    private static ApiHandler _api;
+
+    public static void RegisterCommands(ApiHandler api)
     {
-        var scanCode = eventData.Sender.UsingRawVirtualKeyCode
-            ? (uint)eventData.KeyCode[0]
-            : eventData.Sender.ScanCode[0];
-        var shiftedField = Tools.SafeField(typeof(KeyboardKey), "IsShifted");
-        var altedField = Tools.SafeField(typeof(KeyboardKey), "IsAlted");
-        var isShifted = shiftedField != null && (bool)shiftedField.GetValue(eventData.Sender);
-        var isAlted = altedField != null && (bool)altedField.GetValue(eventData.Sender); // altGr
-
-        foreach (var key in eventData.KeyCode)
-        {
-            var character = Tools.ConvertVirtualKeyToUnicode(key, scanCode, isShifted, isAlted);
-            ProcessKey(key, eventData, character);
-        }
+        _api = api;
+        api.Commands[CmdReady] = (sender, _, _) => SendConfig(sender);
+        api.Commands[CmdState] = (_, json, _) => OnChatState(json);
+        api.Commands[CmdSend] = (_, json, _) => OnSendChat(json);
+        api.Commands[CmdTyping] = (_, json, _) => OnTyping(json);
+        api.Commands[CmdClipboard] = (sender, json, _) => OnClipboard(sender, json);
     }
 
-    private static void ProcessKey(VirtualKeyCode key, KeyboardKey.VirtualKeyEventData data, string character)
+    #region Region: Incoming commands
+
+    private static void OnChatState(string json)
     {
-        var isCtrlHeld = _currentlyDownStickyKeys
-            .Any(k => k.Key[0] is VirtualKeyCode.LCONTROL or VirtualKeyCode.RCONTROL);
-        var sendTyping = PluginSettings.GetSetting<bool>("TypingIndicator").Value;
-        var liveSendMode = PluginSettings.GetSetting<bool>("LiveSend").Value;
-        switch (key)
+        var active = ParseJson(json)?["active"]?.Value<bool>() ?? false;
+        if (active == Plugin.ChatModeActive) return;
+
+        Plugin.ChatModeActive = active;
+        Plugin.PluginLogger.LogInfo($"Chat mode {(active ? "enabled" : "disabled")}");
+
+        if (active)
         {
-            // backspace/delete keys
-            case VirtualKeyCode.BACK or VirtualKeyCode.DELETE:
-            {
-                if (_currentText.Length <= 0) return;
-                if (isCtrlHeld)
-                {
-                    var lastSpaceIndex = _currentText.LastIndexOf(' ');
-                    _currentText = lastSpaceIndex >= 0 ? _currentText.Substring(0, lastSpaceIndex) : "";
-                    UpdateChatText(_currentText);
+            ShowFirstTimeHint();
+            return;
+        }
+
+        SendTyping(false);
+    }
+
+    private static void OnSendChat(string json)
+    {
+        var data = ParseJson(json);
+        if (data == null) return;
+
+        var text = data["text"]?.Value<string>() ?? string.Empty;
+        var sfx = data["sfx"]?.Value<bool>() ?? true;
+
+        text = ReplaceShortcodes(text);
+        if (!PluginSettings.GetSetting<bool>("DisableMaxLength").Value && text.Length > MaxLength)
+        {
+            text = text.Substring(0, MaxLength);
+        }
+
 #if DEBUG
-                    Logger.LogInfo("bulk deleting chat text: " + _currentText);
+        Plugin.PluginLogger.LogInfo($"Sending message (sfx: {sfx}): {text}");
 #endif
-                    if (sendTyping) SendTyping(_currentText.Length != 0);
-                    if (liveSendMode) _eventsTimer.Start();
-                    return;
-                }
-
-                _currentText = _currentText.Remove(key is VirtualKeyCode.DELETE ? 0 : _currentText.Length - 1, 1);
-                if (sendTyping) SendTyping(_currentText.Length != 0);
-                if (liveSendMode) _eventsTimer.Start();
-                UpdateChatText(_currentText);
-                return;
-            }
-            // silent switch (no sound on send, no typing indicator)
-            case VirtualKeyCode.TAB:
-                _isSilentMsg = !_isSilentMsg;
-                UpdateChatColor();
-                Logger.LogInfo($"Silent mode: {_isSilentMsg}");
-                return;
-            // clear shortcut
-            case VirtualKeyCode.ESCAPE:
-                ClearInput();
-                Logger.LogInfo("Input cleared");
-                return;
-            case VirtualKeyCode.END:
-                Tools.SendOsc("/chatbox/input", string.Empty, true, false);
-                Logger.LogInfo("Chatbox cleared");
-                return;
-            case VirtualKeyCode.INSERT:
-                _currentText = _lastMsg;
-                UpdateChatText(_currentText);
-                _isFirstMsg = true;
-                Logger.LogInfo("Inserted last input");
-                return;
-            // copy + paste
-            case VirtualKeyCode.VK_C:
-                if (!isCtrlHeld) break;
-                GUIUtility.systemCopyBuffer = _currentText;
-                return;
-            case VirtualKeyCode.VK_V:
-                if (!isCtrlHeld) break;
-                _currentText += GUIUtility.systemCopyBuffer;
-                UpdateChatText(_currentText);
-                return;
-            case VirtualKeyCode.RETURN:
-                if (liveSendMode)
-                {
-                    Logger.LogInfo($"Sending message (live send enabled): {_currentText.ReplaceShortcodes()}");
-                    _lastMsg = _currentText;
-                    SendMessage(true);
-                    ClearInput();
-                }
-                else
-                {
-                    Logger.LogInfo($"Sending message: {_currentText.ReplaceShortcodes()}");
-                    SendMessage();
-                }
-
-                return;
-        }
-
-        // Normal character inputs
-        if (sendTyping) SendTyping(_currentText.Length != 0);
-        if (liveSendMode) _eventsTimer.Start();
-
-        _currentText += character;
-        UpdateChatText(_currentText);
+        InputToChatbox(text, sfx);
     }
 
-    private static void TimerElapsed(object sender, ElapsedEventArgs e)
+    private static void OnTyping(string json)
     {
-        if (_isSilentMsg) return;
-        Logger.LogInfo("Timer elapsed, sending message");
-        if (_currentText.IsNullOrWhiteSpace())
-        {
-            InputToChatbox(string.Empty, false);
-            SendTyping(false);
-        }
-
-        var sendTyping = PluginSettings.GetSetting<bool>("TypingIndicator").Value;
-        SendMessage(true);
-        if (sendTyping) SendTyping(true);
+        SendTyping(ParseJson(json)?["typing"]?.Value<bool>() ?? false);
     }
 
-    private static void SendMessage(bool liveSend = false)
+    // The webview has no clipboard access of its own, so it asks us to do it
+    private static void OnClipboard(string sender, string json)
     {
-        var triggerSfx = !_isSilentMsg && _isFirstMsg;
+        var data = ParseJson(json);
+        var action = data?["action"]?.Value<string>();
 
-        if (liveSend)
+        switch (action)
         {
-            _eventsTimer.Stop();
-            if (_isFirstMsg) _isFirstMsg = false;
-            InputToChatbox(_currentText.ReplaceShortcodes(), triggerSfx);
-            SendTyping(false);
-        }
-        else
-        {
-            InputToChatbox(_currentText.ReplaceShortcodes(), !_isSilentMsg);
-            SendTyping(false);
-
-            _lastMsg = _currentText;
-            ClearInput();
+            case "copy":
+                GUIUtility.systemCopyBuffer = data["text"]?.Value<string>() ?? string.Empty;
+                break;
+            case "paste":
+                SendMessage(MsgClipboard, JsonConvert.SerializeObject(new ClipboardData
+                {
+                    text = GUIUtility.systemCopyBuffer ?? string.Empty
+                }), sender);
+                break;
+            default:
+                Plugin.PluginLogger.LogWarning($"Unknown clipboard action requested: {action}");
+                break;
         }
     }
+
+    #endregion
+
+    #region Region: OSC
 
     /// <summary>
     /// Since i keep forgetting:
@@ -176,86 +126,179 @@ public static class ChatMode
         Tools.SendOsc("/chatbox/input", text, true, triggerSfx);
     }
 
-    private static void ClearInput()
-    {
-        UpdateChatText(string.Empty);
-        _currentText = string.Empty;
-        _isSilentMsg = false;
-        _isFirstMsg = true;
-        UpdateChatColor();
-        Plugin.ReleaseStickyKeys?.Invoke(Plugin.Instance.inputHandler, null);
-    }
-
     private static void SendTyping(bool typing)
     {
-        if (typing && _isSilentMsg) return;
         Tools.SendOsc("/chatbox/typing", typing);
     }
 
-    public static void Setup(TextMeshProUGUI barText, TextMeshProUGUI charCounter)
+    #endregion
+
+    #region Region: Outgoing messages
+
+    /// <summary>Pushes current plugin settings to the keyboard and settings pages.</summary>
+    public static void PushConfig()
     {
-        _oscBarText = barText;
-        _charCounter = charCounter;
-        _eventsTimer.Elapsed += TimerElapsed;
-        var stickyKeysField = Tools.SafeField(typeof(KeyboardInputHandler), "CurrentlyDownStickyKeys");
-        if (stickyKeysField != null)
-        {
-            _currentlyDownStickyKeys = (List<KeyboardKey>)stickyKeysField.GetValue(Plugin.Instance.inputHandler);
-        }
-        else
-        {
-            Logger.LogWarning("CurrentlyDownStickyKeys field not found; Ctrl-detection will not function correctly.");
-        }
+        SendConfig(KeyboardClient);
+        SendConfig(SettingsClient);
     }
 
-    private static void UpdateChatColor()
+    private static void SendConfig(string client)
     {
-        _oscBarText.color =
-            _isSilentMsg ? UIThemeHandler.Instance.T_WarningTone : UIThemeHandler.Instance.T_ConstrastingTone;
-        _charCounter.color = _currentText.Length switch
+        var config = BuildConfig();
+        // JsonUtility is fussy about nested arrays, and this is the serializer XSOverlay's own
+        // api objects go through anyway
+        var json = JsonConvert.SerializeObject(config);
+        Plugin.PluginLogger.LogInfo($"Sending config to {client} ({config.macros?.Length ?? 0} macros)");
+        SendMessage(MsgConfig, json, client);
+    }
+
+    private static ChatboxConfig BuildConfig()
+    {
+        return new ChatboxConfig
         {
-            >= 120 => UIThemeHandler.Instance.T_ErrTone,
-            >= 85 => UIThemeHandler.Instance.T_WarningTone,
-            _ => UIThemeHandler.Instance.T_ConstrastingTone
+            version = Plugin.PluginVersion,
+            versionText = BuildVersionText(),
+            liveSend = PluginSettings.GetSetting<bool>("LiveSend").Value,
+            typingIndicator = PluginSettings.GetSetting<bool>("TypingIndicator").Value,
+            disableMaxLength = PluginSettings.GetSetting<bool>("DisableMaxLength").Value,
+            checkForUpdates = PluginSettings.GetSetting<bool>("CheckForUpdates").Value,
+            maxLength = MaxLength,
+            updateAvailable = Tools.UpdateCheckResult.Key,
+            macros = ShortcodeList()
         };
     }
 
-    private static void UpdateChatText(string text)
+    private static string BuildVersionText()
     {
-        var disableMaxLength = PluginSettings.GetSetting<bool>("DisableMaxLength").Value;
-        if (text.Length > 144 && !disableMaxLength)
+        var text = $"Version {Plugin.PluginVersion}";
+#if DEBUG || DEV
+        text += " (Dev)";
+#endif
+        try
         {
-            text = text.Substring(0, 144);
+            if (SteamClient.IsValid && !string.IsNullOrEmpty(SteamApps.CurrentBetaName))
+            {
+                text +=
+                    $" — you're on the <strong>{SteamApps.CurrentBetaName}</strong> branch of XSOverlay! Check the plugin repo releases tab for beta plugin updates/fixes";
+                return text;
+            }
+        }
+        catch (Exception ex)
+        {
+            Plugin.PluginLogger.LogWarning($"Couldn't read the current steam branch: {ex.Message}");
         }
 
-        XSTools.SetTMPUIText(_charCounter, $"{text.Length}/144");
-        UpdateChatColor();
+        if (Tools.UpdateCheckResult.Key) text += $" — Update {Tools.UpdateCheckResult.Value} is available!";
+        return text;
+    }
 
-        XSTools.SetTMPUIText(_oscBarText, text);
+    private static void SendMessage(string command, string json, string client)
+    {
+        if (_api == null) return;
+        // Sending to a page that isn't up yet only produces websocket noise
+        if (!_api.SystemClients.ContainsKey(client)) return;
+
+        try
+        {
+            _api.SendMessage(command, json, null, client);
+        }
+        catch (Exception ex)
+        {
+            Plugin.PluginLogger.LogError($"Failed to send {command} to {client}: {ex.Message}");
+        }
+    }
+
+    #endregion
+
+    private static void ShowFirstTimeHint()
+    {
+        PluginSettings.ConfigFile.TryGetEntry(PluginSettings.sectionId, "HasSeenHint",
+            out ConfigEntry<bool> hasSeenHint);
+        if (hasSeenHint == null || hasSeenHint.Value) return;
+
+        Tools.SendNotif("HOLD UP!", "Make sure OSC is enabled in VRChat or this will do nothing! lol");
+        hasSeenHint.Value = true;
+    }
+
+    private static JObject ParseJson(string json)
+    {
+        if (string.IsNullOrEmpty(json)) return null;
+        try
+        {
+            return JObject.Parse(json);
+        }
+        catch (Exception ex)
+        {
+            Plugin.PluginLogger.LogError($"Malformed payload from the keyboard webview: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Text macros, typed as shortcodes or picked from the chat bar's macro menu. The keyboard
+    /// page builds that menu from this list, so this stays the only place they're defined.
+    /// </summary>
+    private static readonly Dictionary<string, string> Shortcodes = new()
+    {
+        // //hrt2 and //skull2 have to be replaced before their shorter namesakes
+        { "//shrug", "¯\\_(ツ)_/¯" },
+        { "//happy", "(¬‿¬)" },
+        { "//tflip", "┬─┬" },
+        { "//music", "🎵" },
+        { "//cookie", "🍪" },
+        { "//star", "⭐" },
+        { "//hrt2", "💕" },
+        { "//hrt", "💗" },
+        { "//skull2", "☠" },
+        { "//skull", "💀" },
+        { "//rx3", "rawr x3" }
+    };
+
+    private static Shortcode[] ShortcodeList()
+    {
+        var list = new List<Shortcode>();
+        foreach (var shortcode in Shortcodes)
+        {
+            list.Add(new Shortcode { code = shortcode.Key, glyph = shortcode.Value });
+        }
+
+        return list.ToArray();
     }
 
     private static string ReplaceShortcodes(this string input)
     {
-        var shortcodes = new Dictionary<string, string>
-        {
-            { "//shrug", "¯\\_(ツ)_/¯" },
-            { "//happy", "(¬‿¬)" },
-            { "//tflip", "┬─┬" },
-            { "//music", "🎵" },
-            { "//cookie", "🍪" },
-            { "//star", "⭐" },
-            { "//hrt", "💗" },
-            { "//hrt2", "💕" },
-            { "//skull", "💀" },
-            { "//skull2", "☠" },
-            { "//rx3", "rawr x3" }
-        };
-
-        foreach (var shortcode in shortcodes)
+        foreach (var shortcode in Shortcodes)
         {
             input = input.Replace(shortcode.Key, shortcode.Value);
         }
 
         return input;
     }
+}
+
+[Serializable]
+public class ChatboxConfig
+{
+    public string version;
+    public string versionText;
+    public bool liveSend;
+    public bool typingIndicator;
+    public bool disableMaxLength;
+    public bool checkForUpdates;
+    public bool updateAvailable;
+    public int maxLength;
+    public Shortcode[] macros;
+}
+
+[Serializable]
+public class Shortcode
+{
+    public string code;
+    public string glyph;
+}
+
+[Serializable]
+public class ClipboardData
+{
+    public string text;
 }
