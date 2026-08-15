@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
 using HarmonyLib;
-using UnityEngine;
 using XSOverlay;
 
 namespace KeyboardOSC.Patches;
 
+// Our settings ride along with XSOverlay's settings page, so they come through here.
 [HarmonyPatch(typeof(XSettingsManager), nameof(XSettingsManager.SetSetting))]
 internal static class PatchSetSetting
 {
@@ -26,14 +26,17 @@ internal static class PatchSetSetting
                 PluginSettings.SetSetting<bool>("DisableMaxLength", value);
                 break;
             case "KBOpenRepo":
-                Application.OpenURL("https://github.com/nyakowint/xsoverlay-keyboard-osc");
-                Tools.SendNotif("KeyboardOSC Github link opened in browser!");
+                Tools.OpenRepo();
                 break;
             case "KBVersionCheck":
                 Task.Run(Tools.CheckVersion);
                 break;
+            default:
+                return true;
         }
 
-        return true;
+        // Keep the keyboard bar and settings page in sync, then skip XSOverlay's own handling
+        ChatMode.PushConfig();
+        return false;
     }
 }
