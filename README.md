@@ -1,20 +1,29 @@
 # XSOverlay Keyboard Chatbox
 
+This branch (`v2-build-688`) is an archival of my OSC Chatbox plugin versions **2.0.0**, intended for use with build 688.
+
+I've left it the way it was committed so the 2 people who enjoy using outdated software can do anything they want with it.
+Or see how it was implemented by someone who isnt a dev of an overlay. lol.
+
+----- 
+
 If you use [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/) and want OSC chatbox functionality, or you're migrating from [OVR Toolkit](https://store.steampowered.com/app/1068820/OVR_Toolkit/)'s,
 this plugin is for you!
 
 The plugin uses [BepInEx](https://docs.bepinex.dev/index.html) to turn the keyboard's text bar into an OSC chatbox!
 
 > [!IMPORTANT]
-> Last tested build: Beta 688. \
+> Last tested build: Beta 688. This version does **NOT** work on Beta 692 or newer.\
 > This is an unofficial plugin! Things will break! \
 > *(do not report bugs to them without removing your plugins first!)* 
 
 > [!IMPORTANT]
-> **Version 2.0.0 is only for the keyboard rework in beta 688 and newer**.
+> **Version 2.0.0 is only for the keyboard rework in beta 688**.
 > On older builds, you should use use plugin [1.x](../../releases/tag/1.3.1) releases instead.
+> 
+> 
 >
-> Xiexe has mentioned they will be adding official OSC chatbox support before the beta ends, making this plugin defunct. (thank u)
+> On newer builds, there is now official OSC chatbox support, making this plugin defunct. (thank u)
 
 ## Preview
 
