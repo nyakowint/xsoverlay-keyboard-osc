@@ -52,6 +52,16 @@ public static class Tools
         XSOEventSystem.Current.EventQueueNotification(notif);
     }
 
+    private static bool _killswitchNotified;
+
+    public static void ShowKillswitchNotifIfNeeded()
+    {
+        if (!Plugin.IsVersionNewFangled || _killswitchNotified) return;
+        _killswitchNotified = true;
+        SendNotif("KeyboardOSC",
+            "This build has official support for OSC Chatbox! You can uninstall the KeyboardOSC plugin now. Plugin functions have been disabled");
+    }
+
     private static int CalculateHeight(string content)
     {
         return content.Length switch

@@ -11,18 +11,23 @@ public static class Patcher
     public static void PatchAll()
     {
         _harmony = new Harmony("nwnt.keyboardosc");
-
-        var patchClasses = new[]
-        {
-            typeof(PatchSendKey),
-            typeof(PatchBlockInput),
-            typeof(PatchScaleWindow),
-            typeof(PatchAttachedMove),
-            typeof(PatchAnalytics),
-            typeof(PatchWebviewRegistration),
-            typeof(PatchSetSetting),
-            typeof(PatchRequestSettings),
-        };
+        
+        var patchClasses = Plugin.IsVersionNewFangled
+            ? new[]
+            {
+                typeof(PatchRequestSettings),
+            }
+            : new[]
+            {
+                typeof(PatchSendKey),
+                typeof(PatchBlockInput),
+                typeof(PatchScaleWindow),
+                typeof(PatchAttachedMove),
+                typeof(PatchAnalytics),
+                typeof(PatchWebviewRegistration),
+                typeof(PatchSetSetting),
+                typeof(PatchRequestSettings),
+            };
 
         foreach (var patch in patchClasses)
         {

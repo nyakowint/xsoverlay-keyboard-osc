@@ -11,18 +11,20 @@ using Vuplex.WebView;
 using XSOverlay;
 using XSOverlay.WebApp;
 
-[assembly: AssemblyVersion("1.3.1")]
+[assembly: AssemblyVersion("1.4.0")]
 
 namespace KeyboardOSC
 {
     [BepInPlugin("nwnt.keyboardosc", "KeyboardOSC", PluginVersion)]
     public class Plugin : BaseUnityPlugin
     {
-        public const string PluginVersion = "1.3.1";
+        public const string PluginVersion = "1.4.0";
+        public const int LastSupportedBuild = 680;
         public static Plugin Instance;
         public static ManualLogSource PluginLogger;
 
         public static bool IsDebugConfig = false;
+        public static bool IsVersionNewFangled = false;
         public static bool IsDevBuild;
         public static bool ChatModeActive;
         public static bool ModifiedUiSuccess;
@@ -57,6 +59,12 @@ namespace KeyboardOSC
             
             ModifiedUiSuccess = Tools.WriteInjectedUi();
 
+            if (int.TryParse(Application.version, out var buildNumber) && buildNumber > LastSupportedBuild)
+            {
+                IsVersionNewFangled = true;
+                Logger.LogWarning($"This version {buildNumber} has official OSC Chatbox support! KeyboardOSC is no longer necessary on this build.");
+            }
+
             if (!Environment.CommandLine.Contains("-batchmode") || IsDebugConfig) return;
             Logger.LogWarning("XSOverlay runs in batchmode normally (headless without a window).");
             Logger.LogWarning("To see extended logs launch XSOverlay directly.");
@@ -70,13 +78,24 @@ namespace KeyboardOSC
             Logger.LogWarning("!! / Please remove KeyboardChatbox before reporting bugs to XSOverlay developers! \\ !!");
             Console.Title = "KeyboardOSC - XSOverlay";
 
-            ReleaseStickyKeys = Tools.SafeMethod(typeof(KeyboardInputHandler), "ReleaseStickyKeys");
+            if (!IsVersionNewFangled)
+            {
+                ReleaseStickyKeys = Tools.SafeMethod(typeof(KeyboardInputHandler), "ReleaseStickyKeys");
+            }
+
             Patcher.PatchAll();
 
             ServerClientBridge.Instance.Api.Commands["Keyboard"] = delegate
             {
-                InitializeKeyboard();
+                Tools.ShowKillswitchNotifIfNeeded();
+                if (!IsVersionNewFangled) InitializeKeyboard();
                 Overlay_Manager.Instance.EnableKeyboard();
+            };
+
+            ServerClientBridge.Instance.Api.Commands["Settings"] = delegate
+            {
+                Tools.ShowKillswitchNotifIfNeeded();
+                Overlay_Manager.Instance.ToggleApplicationSettings();
             };
         }
 
