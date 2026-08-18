@@ -155,7 +155,6 @@ public static class Tools
 
     private static readonly Dictionary<string, string> InjectedScripts = new()
     {
-        { "KeyboardOSC.chatbox-keyboard.js", "chatbox-keyboard.js" },
         { "KeyboardOSC.chatbox-settings.js", "chatbox-settings.js" }
     };
 

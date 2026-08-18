@@ -13,18 +13,11 @@ namespace KeyboardOSC;
 public static class ChatMode
 {
     public const int MaxLength = 144;
-
-    public const string KeyboardClient = "systemui_keyboard";
+    
     public const string SettingsClient = "systemui_settings";
 
     private const string CmdReady = "KBOSCReady";
-    private const string CmdState = "KBOSCState";
-    private const string CmdSend = "KBOSCSend";
-    private const string CmdTyping = "KBOSCTyping";
-    private const string CmdClipboard = "KBOSCClipboard";
-
     private const string MsgConfig = "KBOSCConfig";
-    private const string MsgClipboard = "KBOSCClipboardData";
 
     private static ApiHandler _api;
 
@@ -32,105 +25,12 @@ public static class ChatMode
     {
         _api = api;
         api.Commands[CmdReady] = (sender, _, _) => SendConfig(sender);
-        api.Commands[CmdState] = (_, json, _) => OnChatState(json);
-        api.Commands[CmdSend] = (_, json, _) => OnSendChat(json);
-        api.Commands[CmdTyping] = (_, json, _) => OnTyping(json);
-        api.Commands[CmdClipboard] = (sender, json, _) => OnClipboard(sender, json);
     }
-
-    #region Region: Incoming commands
-
-    private static void OnChatState(string json)
-    {
-        var active = ParseJson(json)?["active"]?.Value<bool>() ?? false;
-        if (active == Plugin.ChatModeActive) return;
-
-        Plugin.ChatModeActive = active;
-        Plugin.PluginLogger.LogInfo($"Chat mode {(active ? "enabled" : "disabled")}");
-
-        if (active)
-        {
-            ShowFirstTimeHint();
-            return;
-        }
-
-        SendTyping(false);
-    }
-
-    private static void OnSendChat(string json)
-    {
-        var data = ParseJson(json);
-        if (data == null) return;
-
-        var text = data["text"]?.Value<string>() ?? string.Empty;
-        var sfx = data["sfx"]?.Value<bool>() ?? true;
-
-        text = ReplaceShortcodes(text);
-        if (!PluginSettings.GetSetting<bool>("DisableMaxLength").Value && text.Length > MaxLength)
-        {
-            text = text.Substring(0, MaxLength);
-        }
-
-#if DEBUG
-        Plugin.PluginLogger.LogInfo($"Sending message (sfx: {sfx}): {text}");
-#endif
-        InputToChatbox(text, sfx);
-    }
-
-    private static void OnTyping(string json)
-    {
-        SendTyping(ParseJson(json)?["typing"]?.Value<bool>() ?? false);
-    }
-
-    private static void OnClipboard(string sender, string json)
-    {
-        var data = ParseJson(json);
-        var action = data?["action"]?.Value<string>();
-
-        switch (action)
-        {
-            case "copy":
-                GUIUtility.systemCopyBuffer = data["text"]?.Value<string>() ?? string.Empty;
-                break;
-            case "paste":
-                SendMessage(MsgClipboard, JsonConvert.SerializeObject(new ClipboardData
-                {
-                    text = GUIUtility.systemCopyBuffer ?? string.Empty
-                }), sender);
-                break;
-            default:
-                Plugin.PluginLogger.LogWarning($"Unknown clipboard action requested: {action}");
-                break;
-        }
-    }
-
-    #endregion
-
-    #region Region: OSC
-
-    /// <summary>
-    /// Since i keep forgetting:
-    /// /chatbox/input s b n Input text into the chatbox.
-    /// If B is True, send the text in S immediately, bypassing the keyboard. If b is False, open the keyboard and populate it with the provided text.
-    /// N is an additional bool parameter that when set to False will not trigger the notification SFX (defaults to True if not specified).
-    /// </summary>
-    private static void InputToChatbox(string text, bool triggerSfx = true)
-    {
-        Tools.SendOsc("/chatbox/input", text, true, triggerSfx);
-    }
-
-    private static void SendTyping(bool typing)
-    {
-        Tools.SendOsc("/chatbox/typing", typing);
-    }
-
-    #endregion
 
     #region Region: Outgoing messages
 
     public static void PushConfig()
     {
-        SendConfig(KeyboardClient);
         SendConfig(SettingsClient);
     }
 
@@ -138,7 +38,7 @@ public static class ChatMode
     {
         var config = BuildConfig();
         var json = JsonConvert.SerializeObject(config);
-        Plugin.PluginLogger.LogInfo($"Sending config to {client} ({config.macros?.Length ?? 0} macros)");
+        Plugin.PluginLogger.LogInfo($"Sending config to {client}");
         SendMessage(MsgConfig, json, client);
     }
 
@@ -153,8 +53,7 @@ public static class ChatMode
             disableMaxLength = PluginSettings.GetSetting<bool>("DisableMaxLength").Value,
             checkForUpdates = PluginSettings.GetSetting<bool>("CheckForUpdates").Value,
             maxLength = MaxLength,
-            updateAvailable = Tools.UpdateCheckResult.Key,
-            macros = ShortcodeList()
+            updateAvailable = Tools.UpdateCheckResult.Key
         };
     }
 
@@ -162,14 +61,14 @@ public static class ChatMode
     {
         var text = $"Version {Plugin.PluginVersion}";
 #if DEBUG || DEV
-        text += " (Dev)";
+        text += " Dev";
 #endif
         try
         {
             if (SteamClient.IsValid && !string.IsNullOrEmpty(SteamApps.CurrentBetaName))
             {
                 text +=
-                    $" — you're on the <strong>{SteamApps.CurrentBetaName}</strong> branch of XSOverlay! Check the plugin repo releases tab for beta plugin updates/fixes";
+                    ". !! This version has official chatbox support! You can remove the plugin now !!";
                 return text;
             }
         }
@@ -198,66 +97,6 @@ public static class ChatMode
     }
 
     #endregion
-
-    private static void ShowFirstTimeHint()
-    {
-        PluginSettings.ConfigFile.TryGetEntry(PluginSettings.sectionId, "HasSeenHint",
-            out ConfigEntry<bool> hasSeenHint);
-        if (hasSeenHint == null || hasSeenHint.Value) return;
-
-        Tools.SendNotif("HOLD UP!", "Make sure OSC is enabled in VRChat or this will do nothing! lol");
-        hasSeenHint.Value = true;
-    }
-
-    private static JObject ParseJson(string json)
-    {
-        if (string.IsNullOrEmpty(json)) return null;
-        try
-        {
-            return JObject.Parse(json);
-        }
-        catch (Exception ex)
-        {
-            Plugin.PluginLogger.LogError($"Malformed payload from the keyboard webview: {ex.Message}");
-            return null;
-        }
-    }
-
-    private static readonly Dictionary<string, string> Shortcodes = new()
-    {
-        { "//shrug", "¯\\_(ツ)_/¯" },
-        { "//happy", "(¬‿¬)" },
-        { "//tflip", "┬─┬" },
-        { "//music", "🎵" },
-        { "//cookie", "🍪" },
-        { "//star", "⭐" },
-        { "//hrt2", "💕" },
-        { "//hrt", "💗" },
-        { "//skull2", "☠" },
-        { "//skull", "💀" },
-        { "//rx3", "rawr x3" }
-    };
-
-    private static Shortcode[] ShortcodeList()
-    {
-        var list = new List<Shortcode>();
-        foreach (var shortcode in Shortcodes)
-        {
-            list.Add(new Shortcode { code = shortcode.Key, glyph = shortcode.Value });
-        }
-
-        return list.ToArray();
-    }
-
-    private static string ReplaceShortcodes(this string input)
-    {
-        foreach (var shortcode in Shortcodes)
-        {
-            input = input.Replace(shortcode.Key, shortcode.Value);
-        }
-
-        return input;
-    }
 }
 
 [Serializable]

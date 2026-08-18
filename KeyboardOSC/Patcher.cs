@@ -14,7 +14,6 @@ public static class Patcher
 
         var patchClasses = new[]
         {
-            typeof(PatchKeyboardFocus),
             typeof(PatchAnalytics),
             typeof(PatchSetSetting),
         };

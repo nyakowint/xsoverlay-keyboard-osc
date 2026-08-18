@@ -9,7 +9,6 @@ namespace KeyboardOSC;
 #pragma warning disable Publicizer001
 public static class UiInjector
 {
-    private const string KeyboardPage = "/Keyboard.html";
     private const string SettingsPage = "/Settings.html";
 
     private static bool _subscribed;
@@ -52,17 +51,12 @@ public static class UiInjector
 
     private static bool IsPatchablePage(string url)
     {
-        return url.EndsWith(KeyboardPage, StringComparison.OrdinalIgnoreCase) ||
-               url.EndsWith(SettingsPage, StringComparison.OrdinalIgnoreCase);
+        return url.EndsWith(SettingsPage, StringComparison.OrdinalIgnoreCase);
     }
 
     private static void InjectInto(string url, bool quiet = false)
     {
-        if (url.EndsWith(KeyboardPage, StringComparison.OrdinalIgnoreCase))
-        {
-            Inject(url, "chatbox-keyboard.js", "_kbosc_keyboard", quiet);
-        }
-        else if (url.EndsWith(SettingsPage, StringComparison.OrdinalIgnoreCase))
+        if (url.EndsWith(SettingsPage, StringComparison.OrdinalIgnoreCase))
         {
             Inject(url, "chatbox-settings.js", "_kbosc_settings", quiet);
         }

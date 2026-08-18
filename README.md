@@ -1,21 +1,9 @@
 # XSOverlay Keyboard Chatbox
 
-This branch (`v2-build-688`) is an archival of my OSC Chatbox plugin versions **2.0.0**, intended for use with build 688.
-
-I've left it the way it was committed so the 2 people who enjoy using outdated software can do anything they want with it.
-Or see how it was implemented by someone who isnt a dev of an overlay. lol.
-
------ 
-
 If you use [XSOverlay](https://store.steampowered.com/app/1173510/XSOverlay/) and want OSC chatbox functionality, or you're migrating from [OVR Toolkit](https://store.steampowered.com/app/1068820/OVR_Toolkit/)'s,
 this plugin is for you!
 
 The plugin uses [BepInEx](https://docs.bepinex.dev/index.html) to turn the keyboard's text bar into an OSC chatbox!
-
-> [!IMPORTANT]
-> Last tested build: Beta 688. This version does **NOT** work on Beta 692 or newer.\
-> This is an unofficial plugin! Things will break! \
-> *(do not report bugs to them without removing your plugins first!)* 
 
 > [!IMPORTANT]
 > **Version 2.0.0 is only for the keyboard rework in beta 688**.
@@ -23,9 +11,9 @@ The plugin uses [BepInEx](https://docs.bepinex.dev/index.html) to turn the keybo
 > 
 > 
 >
-> On newer builds, there is now official OSC chatbox support, making this plugin defunct. (thank u)
+> On newer builds, there is now official OSC chatbox support! Which makes this plugin defunct. (thank u)
 
-## Preview
+## Preview (beta)
 
 |                                                                                                            |                                                                                                              |
 |------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
@@ -34,17 +22,20 @@ The plugin uses [BepInEx](https://docs.bepinex.dev/index.html) to turn the keybo
 
 ## Install
 
-Quick install: Open a **PowerShell** window, and run the following command:
+Dont.
+
+### Uninstall / Remove
+
+Open a **PowerShell** window, and run the following command:
 
 ```pwsh
 Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/nyakowint/xsoverlay-keyboard-osc/main/install.ps1" | Invoke-Expression
 ```
-You'll need to paste the path to your XSOverlay folder if you install steam games to an uncommon location.  \
-To find it, open Steam and navigate to [XSOverlay] > Manage (cog) > Browse local files
 
-To update or remove the chatbox plugin, run the above script again and select update/remove.
-
-Having trouble? Do a [manual installation](#manual-installation)
+Removing the plugin can be done in one of two ways:
+- Run the powershell script above and select `Remove`
+- Follow the manual install steps in reverse order. Delete `BepInEx`, `doorstop_config.ini`, `winhttp.dll` and other non
+  overlay files from your XSOverlay folder.
 
 ## Usage instructions
 
@@ -129,8 +120,6 @@ For other concerns or help please create an issue or discussion post.
 
 ## Manual install
 
-If the powershell script isn't working for you or you have other trouble, use these steps to install the plugin:
-
 1. [Follow the BepInEx install guide](https://docs.bepinex.dev/articles/user_guide/installation/index.html) into
    XSOverlay.
 2. Download both the plugin DLL **and** `BepInEx.cfg` from [Releases](../../releases/latest)
@@ -139,13 +128,6 @@ If the powershell script isn't working for you or you have other trouble, use th
     - **Make sure you have done the second part.** if you dont then you will have a quite useless plugin :L
     - or set it yourself: `HideManagerGameObject = true`
 4. Start XSOverlay
-
-### Uninstall / Remove
-
-Removing the plugin can be done in one of two ways:
-- Run the powershell script above and select `Remove` (option 3)
-- Follow the manual install steps in reverse order. Delete `BepInEx`, `doorstop_config.ini`, `winhttp.dll` and other non
-  overlay files from your XSOverlay folder.
 
 ## Contributions/build from source
 

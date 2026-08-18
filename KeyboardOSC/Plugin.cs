@@ -19,22 +19,10 @@ namespace KeyboardOSC
         public static ManualLogSource PluginLogger;
 
         public static bool IsDebugConfig = false;
-        public static bool IsDevBuild;
-
-        public static bool ChatModeActive;
         public static bool ModifiedUiSuccess;
 
         private void Awake()
         {
-#if DEBUG
-            IsDebugConfig = true;
-#elif DEV
-            Logger.LogWarning("!! DEVELOPMENT BUILD !! ");
-            Logger.LogWarning("YOU ARE USING A DEVELOPMENT BUILD AND THINGS MAY NOT WORK RIGHT!!");
-            Logger.LogWarning("!! DEVELOPMENT BUILD !! ");
-                IsDebugConfig = true;
-                IsDevBuild = true;
-#endif
             Instance = this;
             PluginLogger = Logger;
             PluginSettings.ConfigFile = Config;
@@ -50,10 +38,7 @@ namespace KeyboardOSC
 
         private void Start()
         {
-            Logger.LogInfo($"Keyboard OSC v{PluginVersion} started!");
-            Logger.LogWarning("Report plugin-specific issues to the GitHub repo.");
-            Logger.LogWarning("!! / Please remove KeyboardChatbox before reporting bugs to XSOverlay developers! \\ !!");
-            Console.Title = "KeyboardOSC - XSOverlay";
+            Logger.LogInfo($"Keyboard OSC v{PluginVersion} started! There really is no need for you to run this anymore, yknow...");
 
             Patcher.PatchAll();
             StartCoroutine(SetupBridge());

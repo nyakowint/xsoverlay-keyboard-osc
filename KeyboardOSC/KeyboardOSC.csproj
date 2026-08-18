@@ -39,7 +39,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="chatbox-keyboard.js" />
         <EmbeddedResource Include="chatbox-settings.js" />
     </ItemGroup>
 
